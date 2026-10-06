@@ -20,9 +20,51 @@ That last line is what your loop branches on. "Returns a list" earns nothing —
 the description has to say what is *in* the list.
 """
 
-import config  # noqa: F401 — you'll use this in search_listings
+import re
+
+import config
 from generate import generate
 from utils.data_loader import load_listings
+
+_STOPWORDS = {
+    "a", "an", "and", "the", "for", "in", "of", "on", "or", "to", "with", "under",
+    "below", "over", "around", "size", "i", "me", "my", "want", "need", "looking",
+    "find", "some", "something", "that", "is", "it", "any",
+}
+
+
+def _words(text: str) -> set[str]:
+    """Lowercase word tokens, with a trailing plural 's' stripped ("tees" -> "tee")."""
+    tokens = re.findall(r"[a-z0-9]+", text.lower())
+    return {t[:-1] if len(t) > 3 and t.endswith("s") else t for t in tokens}
+
+
+def _size_tokens(size: str) -> set[str]:
+    """Split a size on spaces, '/', and parentheses: "S/M" -> {"s", "m"}."""
+    return {t for t in re.split(r"[\s/()]+", size.lower()) if t}
+
+
+def _size_matches(requested: str, listing_size: str) -> bool:
+    """Whole-token match: every token of the request must be a token of the listing."""
+    wanted = _size_tokens(requested)
+    return bool(wanted) and wanted <= _size_tokens(listing_size)
+
+
+
+def _fix_text(text: str) -> str:
+    """The sample data has UTF-8 dashes that were decoded as cp1252; undo that."""
+    try:
+        return text.encode("cp1252").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return text
+
+
+def _describe_item(item: dict) -> str:
+    return (
+        f"{_fix_text(item['title'])} - {item['category']}, size {item['size']}, "
+        f"{item['condition']} condition, ${item['price']:g} on {item['platform']}. "
+        f"Colors: {', '.join(item['colors'])}. Style: {', '.join(item['style_tags'])}."
+    )
 
 
 # ── Tool 1: search_listings ───────────────────────────────────────────────────
@@ -78,8 +120,26 @@ def search_listings(
     Test it from a terminal before you move on:
         python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
     """
-    # TODO: replace this with your implementation
-    return []
+    keywords = _words(description) - _STOPWORDS
+    scored = []
+    for listing in load_listings():
+        if max_price is not None and listing["price"] > max_price:
+            continue
+        if size and not _size_matches(size, listing["size"]):
+            continue
+        haystack = _words(" ".join([
+            listing["title"],
+            listing["description"],
+            listing["category"],
+            listing["brand"] or "",
+            " ".join(listing["style_tags"]),
+            " ".join(listing["colors"]),
+        ]))
+        score = len(keywords & haystack)
+        if score > 0:
+            scored.append((score, listing))
+    scored.sort(key=lambda pair: pair[0], reverse=True)  # stable: ties keep file order
+    return [listing for _, listing in scored[:config.SEARCH_RESULT_LIMIT]]
 
 
 # ── Tool 2: suggest_outfit ────────────────────────────────────────────────────
@@ -112,8 +172,29 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    items = (wardrobe or {}).get("items") or []
+    item_text = _describe_item(new_item)
+    if not items:
+        prompt = (
+            f"A shopper is considering this secondhand find:\n{item_text}\n\n"
+            "They have not told us what is in their wardrobe. Give general styling "
+            "advice: one or two outfit ideas built around this item, naming the kinds "
+            "of pieces that would go with it. Keep it under 120 words."
+        )
+    else:
+        closet = "\n".join(
+            f"- {w['name']} ({w['category']}; {', '.join(w['colors'])}; "
+            f"{', '.join(w['style_tags'])})" + (f" - {w['notes']}" if w.get("notes") else "")
+            for w in items
+        )
+        prompt = (
+            f"A shopper is considering this secondhand find:\n{item_text}\n\n"
+            f"Their wardrobe:\n{closet}\n\n"
+            "Suggest one or two outfits that combine the new item with pieces they "
+            "already own. Name those pieces exactly as listed. Keep it under 150 words."
+        )
+    result = generate(prompt, system="You are a thrift-store stylist. Be specific and concise.")
+    return result.strip() or "Pair it with simple basics in a neutral colour."
 
 
 # ── Tool 3: create_fit_card ───────────────────────────────────────────────────
@@ -152,5 +233,17 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    if not outfit or not outfit.strip() or not new_item:
+        return "Can't write a fit card without an outfit and an item."
+    price = f"${new_item['price']:g}"
+    prompt = (
+        f"Item: {_fix_text(new_item['title'])}\n"
+        f"Price: {price}\nPlatform: {new_item['platform']}\n\n"
+        f"Outfit idea:\n{outfit}\n\n"
+        "Write a two-to-four sentence caption someone would actually post about this "
+        "find. Sound like a real post, not a product description. Mention the item, "
+        f"its price written exactly as {price}, and the platform once each, and be "
+        "specific about the vibe."
+    )
+    result = generate(prompt, system="You write short, casual social captions for thrift finds.")
+    return result.strip() or "Can't write a fit card: the model returned nothing."

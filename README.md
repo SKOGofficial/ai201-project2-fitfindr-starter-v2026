@@ -120,18 +120,22 @@ $ python app.py ask '...'
 **The three tools, tested one at a time**
 
 ```
-$ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
-
+$ python -c "from tools import search_listings; print([(r['id'], r['title'], r['price']) for r in search_listings('graphic tee', max_price=30)][:3])"
+[('lst_002', 'Y2K Baby Tee — Butterfly Print', 18.0), ('lst_006', 'Graphic Tee — 2003 Tour Bootleg Style', 24.0), ('lst_017', 'Mesh Long-Sleeve Top — Black', 15.0)]
 ```
 
 ```
-$ python -c "from tools import suggest_outfit; ..."
+$ python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[1], get_example_wardrobe()))"
+**Outfit 1: Streetwear Contrast**
+Pair the baby tee with your baggy straight-leg jeans to balance the fitted silhouette. Layer the vintage black denim jacket on top and finish with chunky white sneakers and the black crossbody bag.
 
+**Outfit 2: Y2K Casual**
+Tuck the baby tee into your wide-leg khaki trousers for an earth-toned contrast, and wear it with chunky white sneakers and the black crossbody bag for a casual daytime look.
 ```
 
 ```
-$ python -c "from tools import create_fit_card; ..."
-
+$ python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('baby tee, baggy jeans, white sneakers', load_listings()[1]))"
+Living my best 2000s pop star fantasy in this butterfly baby tee. 🦋 Pair it with some baggy denim and fresh white kicks and you're good to go. Snagged this on depop for just $18 and I’m lowkey obsessed.
 ```
 
 ---
