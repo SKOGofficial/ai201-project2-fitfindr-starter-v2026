@@ -24,7 +24,7 @@ data earns credit; *"80% seemed reasonable"* does not.
 Given a query that matches at least one listing, the agent completes all three
 tool calls and returns a fit card — in at least 4 of 5 tries.
 
-**Why this target:**
+**Why this target:** This target depends on the model's pure ability to parse the relevant information out of the query, and it may not be strong enough for complicated requests, so 5 of 5 would be unfair to it.
 <!-- Why 4 of 5 and not 5 of 5? Something about your search, probably —
      "my search is a plain keyword match and some phrasings will miss" is a
      real answer. -->
@@ -36,7 +36,7 @@ tool calls and returns a fit card — in at least 4 of 5 tries.
 Given a query that matches no listings, the agent stops before calling
 `suggest_outfit` and returns a message naming what to change — 5 of 5 tries.
 
-**Why this target:**
+**Why this target:** This case seems to be working well. The model can probably tell clearly when a query is completely out of scope; it seems improbable that it would miss, since it may be trained to recognise real possibilities over tokens that typically won't be associated with each other in a normal sentence.
 <!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
      about this path? -->
 
@@ -54,9 +54,14 @@ Given a query that matches no listings, the agent stops before calling
      compares session["selected_item"] against what actually reached
      suggest_outfit is the shape you're after. -->
 
+In at least 5 of 5 matching runs, `session["selected_item"]["id"]` equals
+`session["search_results"][0]["id"]` and equals the `id` of the item dict that
+`suggest_outfit` actually received (checked by wrapping `suggest_outfit` and
+recording its argument).
 
 
-**Why this target:**
+
+**Why this target:** This is a sanity check, really.
 
 
 
@@ -75,9 +80,13 @@ Given a query that matches no listings, the agent stops before calling
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
+In 5 of 5 fit cards, for 5 different items, the card text matches the regex
+`\$<price>(\.00)?(?!\d)`, where `<price>` is that listing's price with a trailing
+`.0` dropped (for example `$18` or `$18.00`).
 
 
-**Why this target:**
+
+**Why this target:** I want this checked with a regex, not by eye.
 
 
 
@@ -92,9 +101,13 @@ Given a query that matches no listings, the agent stops before calling
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
 
+In 5 of 5 matching runs the fit card contains the literal tag `(from database)`,
+and in 5 of 5 impossible-query runs `session["error"]` starts with `(no match)`
+and `session["fit_card"]` is `None`. Both are checked with a regex.
 
 
-**Why this target:**
+
+**Why this target:** This is a test at the end of the pipeline. If every earlier criterion passed within its threshold, there is some leeway for design failure while still solving the meat of the problem.
 
 
 
