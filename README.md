@@ -39,7 +39,7 @@
 
 ## What This Does
 
-<!-- Three or four sentences: what a user asks for, and what they get back. -->
+A user types a plain-language request for a secondhand clothing item, such as "vintage graphic tee under $30". FitFindr parses out the keywords, size and price ceiling, searches a 40-listing mock dataset (Depop, Poshmark, thredUp), and picks the best match. It then suggests one or two outfits that combine that item with pieces from the user's wardrobe (or general styling advice if the wardrobe is empty) and writes a short, postable fit card tagged `(from database)`. If nothing matches, it stops and says which description, size and price it tried and what to loosen.
 
 
 
@@ -171,15 +171,15 @@ Living my best 2000s pop star fantasy in this butterfly baby tee. 🦋 Pair it w
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* Claude implemented `create_fit_card`, and I ran it three times on the same item to check the output varied.
+- *What came back:* three word-for-word identical cards, which looked like a broken tool.
+- *What I changed:* nothing in the code. Claude traced it to `CACHE_ENABLED` in `config.py`, and re-running with `AI201_CACHE=0` gave three different cards. I kept the cache on while building.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* Claude to paste the no-match run into the README Sample Run.
+- *What came back:* a made-up output format that did not match what `python app.py ask` really prints.
+- *What I changed:* I re-ran the command and replaced it with the real terminal text.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
