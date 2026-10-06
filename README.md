@@ -99,7 +99,7 @@
 
 **How the query is parsed:** Asking the model: it returns JSON with `description`, `size` and `max_price`, stored in `session["parsed"]`.
 
-**What moves through the session:** <!-- which fields, in what order -->
+**What moves through the session:** `parsed` (description, size, max_price) is written first and read by the search; `search_results` is written, then `selected_item` is set to `search_results[0]` and read by `suggest_outfit`; `outfit_suggestion` is written and read by `create_fit_card` along with `selected_item`; `fit_card` is written last. `error` is set only when the run stops early.
 
 ---
 
@@ -113,8 +113,28 @@
 **One full query**
 
 ```
-$ python app.py ask '...'
+$ python app.py ask 'vintage graphic tee under $30'
+  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
 
+  Outfit:   **Outfit 1: Y2K Streetwear**
+Pair the baby tee with your baggy straight-leg jeans. Layer the black cropped zip hoodie unzipped over top, and finish with chunky white sneakers and your black crossbody bag. 
+
+**Outfit 2: Contrast Grunge**
+Tuck the butterfly tee into your wide-leg khaki trousers, cinched with the brown leather belt. Throw on the vintage black denim jacket and ground the sweet pastel print with black combat boots.
+
+  Fit card: Butterflies really are taking over my whole wardrobe lately 🦋 Found this unreal Y2K baby tee and honestly cannot wait to style it for that low-rise streetwear vibe or contrast grunge look. Snagged it on depop for just $18 and it's already my favorite piece of the week! ✨
+(from database)
+
+3 model calls this session, 615 prompt + 191 output tokens
+```
+
+**The no-match path**
+
+```
+$ python app.py ask 'designer ballgown size XXS under $5'
+  (no match) Nothing matched 'designer ballgown', size XXS, under $5. Try different keywords, a different size or none, a higher budget.
+
+1 model calls this session, 94 prompt + 31 output tokens
 ```
 
 **The three tools, tested one at a time**

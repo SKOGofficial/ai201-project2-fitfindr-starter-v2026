@@ -13,10 +13,64 @@ Build and test your three tools in `tools.py` first. Then come here.
     python agent.py          runs both example paths below
 """
 
+import json
+import re
+
 import config
 import trace
 from tools import search_listings, suggest_outfit, create_fit_card
-from generate import ModelUnavailable
+from generate import ModelUnavailable, generate
+
+
+FROM_DATABASE_TAG = "(from database)"
+NO_MATCH_TAG = "(no match)"
+
+_PARSE_PROMPT = """Extract search filters from this secondhand clothing request.
+Reply with ONLY a JSON object with exactly these keys:
+  "description": the item keywords (string, without the size or price words),
+  "size": the size requested as a string such as "M" or "US 8", or null,
+  "max_price": the price ceiling as a number, or null.
+
+Request: {query}"""
+
+
+def _parse_query(query: str) -> dict:
+    """Ask the model for description / size / max_price. Falls back to the raw query."""
+    fallback = {"description": query, "size": None, "max_price": None}
+    raw = generate(_PARSE_PROMPT.format(query=query), temperature=0.0)
+    match = re.search(r"{.*}", raw, re.DOTALL)
+    try:
+        data = json.loads(match.group(0))
+    except (AttributeError, ValueError):
+        return fallback
+    size = data.get("size")
+    price = data.get("max_price")
+    try:
+        price = float(price) if price is not None else None
+    except (TypeError, ValueError):
+        price = None
+    return {
+        "description": str(data.get("description") or query),
+        "size": str(size) if size else None,
+        "max_price": price,
+    }
+
+
+def _no_match_message(parsed: dict) -> str:
+    tried = [f"'{parsed['description']}'"]
+    if parsed["size"]:
+        tried.append(f"size {parsed['size']}")
+    if parsed["max_price"] is not None:
+        tried.append(f"under ${parsed['max_price']:g}")
+    loosen = ["different keywords"]
+    if parsed["size"]:
+        loosen.append("a different size or none")
+    if parsed["max_price"] is not None:
+        loosen.append("a higher budget")
+    return (
+        f"{NO_MATCH_TAG} Nothing matched {', '.join(tried)}. "
+        f"Try {', '.join(loosen)}."
+    )
 
 
 # ── session state ─────────────────────────────────────────────────────────────
@@ -107,8 +161,42 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     """
     session = new_session(query, wardrobe)
 
-    # TODO: delete these two lines and build the loop.
-    session["error"] = "The planning loop isn't built yet — see the TODO in agent.py."
+    # The loop looks at what the last step produced before choosing the next one.
+    step_name = "parse"
+    count = 0
+    try:
+        while step_name != "done":
+            count += 1
+            trace.check_iterations(count)
+
+            if step_name == "parse":
+                session["parsed"] = _parse_query(query)
+                step_name = "search"
+
+            elif step_name == "search":
+                parsed = session["parsed"]
+                session["search_results"] = search_listings(
+                    parsed["description"], parsed["size"], parsed["max_price"]
+                )
+                # THE BRANCH: nothing found -> explain and stop; fit_card stays None.
+                if not session["search_results"]:
+                    session["error"] = _no_match_message(parsed)
+                    return session
+                session["selected_item"] = session["search_results"][0]
+                step_name = "outfit"
+
+            elif step_name == "outfit":
+                session["outfit_suggestion"] = suggest_outfit(
+                    session["selected_item"], session["wardrobe"]
+                )
+                step_name = "card"
+
+            elif step_name == "card":
+                card = create_fit_card(session["outfit_suggestion"], session["selected_item"])
+                session["fit_card"] = f"{card}\n{FROM_DATABASE_TAG}"
+                step_name = "done"
+    except ModelUnavailable as exc:
+        session["error"] = f"The model couldn't be reached, so the run stopped early: {exc}"
     return session
 
 
