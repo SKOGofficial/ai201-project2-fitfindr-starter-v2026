@@ -277,13 +277,23 @@ impossible run: (no match) Nothing matched 'designer ballgown', size XXS, under 
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | A matching query completes all three tools | 4 of 5 | **MET** | 5 of 5 tries passed against a target of 4. In every run `parse`, `search_listings`, `suggest_outfit` and `create_fit_card` ran and a real fit card came back; I checked the two model tools by recording their calls, not just by looking for a card. One try parsed its size wrongly and still passed (see Diagnoses). |
+| 2 | An impossible query stops before the second tool | 5 of 5 | **MISSED** | 4 of 5 passed against a target of 5. Try 4 (`graphic tee under $5`) never reached the search: the model service returned 503 on the first call. The agent did not call `suggest_outfit`, but it also did not return a message naming what to change (it printed a raw error), so it fails the criterion as written. I kept it as a FAIL instead of re-running it: a user would have got that raw error, and a re-run until it passed would have hidden it. |
+| 3 | Item in session matches the item passed to `suggest_outfit` | 5 of 5 | **MET** | In all five matching runs `selected_item["id"]`, `search_results[0]["id"]` and the id `suggest_outfit` actually received (recorded by wrapping it) were the same. |
+| 4 | Fit card contains the item's price | 5 of 5 | **MET** | The regex matched all five cards, which were for five different items (lst_002, lst_004, lst_038, lst_019, lst_023). |
+| 5 | `(from database)` on matches; `(no match)` and no fit card on stops | 5 of 5 | **MISSED** | 4 of 5 passed against a target of 5. All five matching runs carried the tag. The one failure is the same try-4 event as criterion 2: that run's error began "The model couldn't be reached", not `(no match)`. So criteria 2 and 5 are one failure counted twice. |
 
 **Diagnoses**
+
+*Miss: criteria 2 and 5 (one event — impossible try 4, `graphic tee under $5`).*
+- **Where:** a model call, at the first step of the loop (`agent.py::_parse_query` → `generate.py::generate`). It was not the branch (never reached; re-run three times it took the branch correctly 3 of 3, `results/diagnostics_before.md` section A), not a tool, and not the session.
+- **Mechanism:** the service answered `503 UNAVAILABLE`. `generate()` only retries when the error looks like a rate limit (429, "resource exhausted", "rate limit"); every other error becomes `ModelUnavailable` straight away, so a temporary outage ends the whole run. `generate.py::_explain` has no case for it and falls through to `Couldn't reach the model: {exc}`, which prints the raw error dict and does not tell the user to wait and try again. Two separate defects: no retry for temporary failures, and a message with no next step.
+
+*Pattern.* Everything that failed, or nearly failed, is in step 1, before the branch: the 503 (a failed run) and the wrong parse below (a run that passed). In every run that got past the parse, the branch, the two later tools and the session did what the spec said.
+
+*A pass that hides a bug (criterion 1, matching try 3).* `a medium wash denim vest, nothing over $30` was parsed with `size: 'M'`: the model read "medium" in "medium wash" as a size. It is repeatable (5 of 5 parses identical at temperature 0) and it comes from the model's output in the parse prompt (`agent.py::_parse_query`), not from the tool. The try passed only because the listing it wanted (lst_038) happens to be size M. When I asked for another "Medium Wash" item, Levi's 501 jeans (lst_001, size `W30 L30`), the size-M filter hid it and the agent returned a denim vest instead, with no error and a tagged fit card (`results/diagnostics_before.md` section C). I did not count this as a miss, because criterion 1 as written was met. It is the thing my five criteria cannot see: they check that a run completed and that its state was consistent, not that the item returned is the one the user asked for.
+
+*Were my targets low?* Partly. Criterion 3 cannot fail by construction (`selected_item` is `search_results[0]` and is passed straight on), so it checks consistency, not correctness. Criterion 5's tags are added by code, so it can only fail when criterion 1 or 2 fails; it failed here only through criterion 2's event. Criterion 1 scored 5 of 5 against a target of 4, and its wrong parse did not change the outcome. The one I would tighten is criterion 1, to "the item selected is the one a correct parse would select", not just "a card came back". I did not revise any criterion: none was unmeasurable (criterion 5 needed a pairing rule to get five tries out of two halves, described under the run log), so `criteria.md` is unchanged.
 
 
 
