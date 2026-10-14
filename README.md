@@ -387,6 +387,8 @@ $ python app.py ask 'corduroy trucker jacket size L under $60'     # 3. model un
 
      `python run_eval.py --label after` -->
 
+**Plan, written before either change was made.** The one required improvement is to make `generate.py` ride out temporary model-service failures (the 503 behind the criterion 2 and 5 misses) and report an outage with a message that says what to do. I am also doing one optional stretch feature, declared here before I start it: **a second improvement from my diagnosis, measured the same way** — rewrite the parse prompt in `agent.py::_PARSE_PROMPT` so item-name words such as "medium wash" are not read as a size. Each change gets its own before/after measurement, and the two are made and measured one after the other so their effects can be told apart.
+
 **What I changed:**
 
 **Which failure it was meant to fix:**
