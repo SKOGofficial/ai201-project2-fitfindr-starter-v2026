@@ -201,17 +201,58 @@ Living my best 2000s pop star fantasy in this butterfly baby tee. 🦋 Pair it w
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. A matching query completes all three tools | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. An impossible query stops before the second tool | 5 of 5 | PASS | PASS | PASS | FAIL | PASS | MISSED (4/5) |
+| 3. Item in session matches the item passed to suggest_outfit | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 4. Fit card text contains the item's price | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 5. `(from database)` on matches, `(no match)` and no fit card on stops | 5 of 5 | PASS | PASS | PASS | FAIL | PASS | MISSED (4/5) |
 
-**Real output from one try**, pasted as text, naming the file and function
-that produced it:
+How to read the table: a **try is one run of one query, and each criterion's five tries are five different queries** (queries and reasons are in `scenarios.py`; they were committed before this run). Criteria 1, 3, 4 and the matching half of 5 are scored from the same five matching runs; criterion 2 and the other half of 5 from five impossible-query runs; criterion 5's try *k* pairs matching run *k* with impossible run *k* and passes only if both pass. Caching was off, temperature 0.9. The PASS/FAIL rules are the functions in `score_run.py`, which applies each criterion as written in `criteria.md`; the verdicts above are arithmetic only (passes against the target) and are diagnosed below. Full outputs: `results/scored_2026-10-14_0033_before.md` and the raw log `results/run_2026-10-14_0033_before.md`.
+
+The one FAIL in the table is a single event: in impossible-query try 4 (`graphic tee under $5`) the model service answered `503 UNAVAILABLE` on the very first call (parsing the query), so the search never ran. Criterion 5 failed on that same run, so criteria 2 and 5 share one cause.
+
+**Real output from one try per criterion**, pasted as text.
+
+Criterion 1, try 1 (`python score_run.py --label before`; fit card from `tools.py::create_fit_card`, tag appended in `agent.py::run_agent`):
 
 ```
+query: vintage graphic tee under $30
+parse: {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+Item: lst_002 — Y2K Baby Tee — Butterfly Print ($18.0, depop)
+Butterfly print baby tee straight out of the 2000s and I am obsessed 🦋 So easy to dress up with baggy denim or wide-leg trousers. Grab this over on my depop for just $18 before I change my mind and keep it!
+(from database)
+```
 
+Criterion 2, try 1 passed, try 4 failed (message from `agent.py::_no_match_message`, returned by the branch in `agent.py::run_agent`; the failing one came from `generate.py::generate` raising `ModelUnavailable`, caught in `run_agent`):
+
+```
+query: designer ballgown size XXS under $5
+(no match) Nothing matched 'designer ballgown', size XXS, under $5. Try different keywords, a different size or none, a higher budget.
+
+query: graphic tee under $5
+The model couldn't be reached, so the run stopped early: Couldn't reach the model: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'The service is currently unavailable.', 'status': 'UNAVAILABLE'}}
+```
+
+Criterion 3, try 1 (the `suggest_outfit` argument is recorded by a wrapper in `score_run.py`; the session fields are set in `agent.py::run_agent`):
+
+```
+selected_item id: lst_002
+search_results[0] id: lst_002
+id(s) suggest_outfit received: ['lst_002']
+```
+
+Criterion 4, try 1 (checked by `score_run.py::score_4`):
+
+```
+Item: lst_002 ($18.0)  ->  matched /\$18(\.00)?(?!\d)/
+Fit card: "...Grab this over on my depop for just $18 before I change my mind and keep it!"
+```
+
+Criterion 5, try 1 (tags set in `agent.py::run_agent`):
+
+```
+matching run:   ...keep it!\n(from database)
+impossible run: (no match) Nothing matched 'designer ballgown', size XXS, under $5. Try different keywords, a different size or none, a higher budget.   [fit_card is None]
 ```
 
 ---
