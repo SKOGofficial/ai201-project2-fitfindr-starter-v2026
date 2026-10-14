@@ -59,7 +59,7 @@ works with a direct call, and **a documented failure earns the point in full.**
 
 from mcp.server.fastmcp import FastMCP
 
-from tools import search_listings as _search_listings_impl  # noqa: F401 — you'll use this below
+from tools import search_listings as _search_listings_impl  # the real implementation, aliased so the registered tool below doesn't call itself
 
 # log_level="WARNING" keeps the server from printing an INFO line for every
 # request. Without it your terminal fills with "Processing request of type
@@ -67,22 +67,39 @@ from tools import search_listings as _search_listings_impl  # noqa: F401 — you
 mcp = FastMCP("fitfindr", log_level="WARNING")
 
 
-# ── TODO: uncomment and fill this in ──────────────────────────────────────────
+# ── the one tool offered over MCP ─────────────────────────────────────────────
 #
-# @mcp.tool()
-# def search_listings(
-#     description: str,
-#     size: str | None = None,
-#     max_price: float | None = None,
-# ) -> list[dict]:
-#     """
-#     <-- YOUR DESCRIPTION GOES HERE.
-#
-#         One or two sentences. What does this tool do, what does it need, and
-#         what does it give back when it finds nothing? Written for a reader
-#         who cannot see the code.
-#     """
-#     return _search_listings_impl(description, size, max_price)
+@mcp.tool()
+def search_listings(
+    description: str,
+    size: str | None = None,
+    max_price: float | None = None,
+) -> list[dict]:
+    """
+    Search a 40-item secondhand clothing listings dataset by keyword, with an
+    optional size and price ceiling. Returns up to 10 listings, best keyword
+    match first.
+
+    Args:
+        description: free-text keywords for the item, e.g. "vintage graphic tee".
+                     Matched against each listing's title, description, category,
+                     brand, style tags and colors; common filler words are ignored.
+        size:        optional size string such as "M" or "US 8", or null to skip
+                     the size filter. Case-insensitive whole-token match: the
+                     listing's size is split on spaces, "/" and parentheses, so
+                     "M" matches "S/M" and "M" but not "XL" or "US 9".
+        max_price:   optional price ceiling in US dollars (a number, e.g. 30 or
+                     29.99), inclusive, or null to skip the price filter.
+
+    Returns:
+        A list of listing objects, each with: id (str), title (str),
+        description (str), category (str), style_tags (list of str), size (str),
+        condition (str), price (number, US dollars), colors (list of str),
+        brand (str or null), platform (str).
+        When nothing matches, returns an empty list [] (never null, never an
+        error).
+    """
+    return _search_listings_impl(description, size, max_price)
 #
 # ──────────────────────────────────────────────────────────────────────────────
 #

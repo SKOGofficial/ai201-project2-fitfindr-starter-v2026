@@ -18,7 +18,8 @@ import re
 
 import config
 import trace
-from tools import search_listings, suggest_outfit, create_fit_card
+from mcp_client import call_tool
+from tools import suggest_outfit, create_fit_card
 from generate import ModelUnavailable, generate
 
 
@@ -175,9 +176,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
             elif step_name == "search":
                 parsed = session["parsed"]
-                session["search_results"] = search_listings(
-                    parsed["description"], parsed["size"], parsed["max_price"]
-                )
+                session["search_results"] = call_tool("search_listings", {
+                    "description": parsed["description"],
+                    "size": parsed["size"],
+                    "max_price": parsed["max_price"],
+                })
                 # THE BRANCH: nothing found -> explain and stop; fit_card stays None.
                 if not session["search_results"]:
                     session["error"] = _no_match_message(parsed)
