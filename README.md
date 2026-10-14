@@ -181,6 +181,24 @@ Living my best 2000s pop star fantasy in this butterfly baby tee. 🦋 Pair it w
 - *What came back:* a made-up output format that did not match what `python app.py ask` really prints.
 - *What I changed:* I re-ran the command and replaced it with the real terminal text.
 
+**Moment 3 (unit 4)**
+
+- *What I asked for:* Claude to work out what each of my five criteria needs run, and write the scenarios, including five impossible queries for criterion 2.
+- *What came back:* five impossible queries, one of them `kimono robe in silk satin`. Before anything was run, Claude checked every query against the data, and that one was not impossible: the parse would keep "silk satin", which matches two real silk listings, so the search would have returned results and the test would have measured nothing.
+- *What I changed:* the query became `looking for a kimono robe` (zero matches), and the five matching queries were confirmed to land on five different top items. The scenarios and scorer were committed before the first run.
+
+**Moment 4 (unit 4)**
+
+- *What I asked for:* a first run of my criteria. One impossible-query try failed because the model service returned a 503, and Claude gave me two ways to count it.
+- *What came back:* either keep it as a FAIL, or call it an invalid try and re-run it, which would have made every criterion look met.
+- *What I changed:* I chose to keep it as a FAIL. That is what pointed to the real weakness (no retry for temporary failures, and a raw error dict as the message), which became my one improvement.
+
+**Moment 5 (unit 4)**
+
+- *What I asked for:* Claude to fix the "medium wash" parse bug by rewriting the parse prompt, as my optional second improvement.
+- *What came back:* a prompt rule that fixed the trap queries (2 of 5 to 5 of 5) and the Levi's query, but my own real-size guard dropped from 7 of 7 to 6 of 7. Re-measured over 8 parses per query, correct size parses fell from 24 of 24 to 9 of 24: "a medium denim jacket" lost its size every time.
+- *What I changed:* I had Claude revert the prompt (keeping the evidence in the repo) and listed the bug first under What's Still Broken.
+
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
      Don't fill these in during unit 3.
@@ -389,24 +407,70 @@ $ python app.py ask 'corduroy trucker jacket size L under $60'     # 3. model un
 
 **Plan, written before either change was made.** The one required improvement is to make `generate.py` ride out temporary model-service failures (the 503 behind the criterion 2 and 5 misses) and report an outage with a message that says what to do. I am also doing one optional stretch feature, declared here before I start it: **a second improvement from my diagnosis, measured the same way** — rewrite the parse prompt in `agent.py::_PARSE_PROMPT` so item-name words such as "medium wash" are not read as a size. Each change gets its own before/after measurement, and the two are made and measured one after the other so their effects can be told apart.
 
-**What I changed:**
+**What I changed (improvement 1, required):** `generate.py`, the one adapter every model call goes through, so the change covers the parse, `suggest_outfit` and `create_fit_card` calls alike.
+- A new `_is_transient()` treats a 500, 503 or 504, or wording like "unavailable", "overloaded" or "deadline exceeded", as a temporary failure on the service's side. A bad key, a wrong model name and a rate limit are not in that group.
+- `generate()` now retries a temporary failure up to `config.TRANSIENT_RETRIES` times (a new setting, 3), waiting 2 s, 4 s and 8 s and printing a `[model busy]` line each time, and only then gives up with `ModelUnavailable`.
+- `_explain()` has a new case, so a lasting outage reads "The model service is temporarily unavailable (it was still unavailable after 3 retries). This is on the service's side, not yours. Wait a minute and try again." instead of `Couldn't reach the model: 503 UNAVAILABLE. {'error': {...}}`.
 
-**Which failure it was meant to fix:**
+Nothing else changed: `agent.py`, the tools, the MCP server and the scenarios are exactly as they were in the before run. The cost is that during a real outage a run now takes about 14 s longer before it gives up.
+
+**Which failure it was meant to fix:** the criterion 2 and 5 miss (impossible-query try 4). One `503 UNAVAILABLE` on the parse call ended the run at once, with a raw error dict instead of a message saying what to do.
+
+**How I measured it.** That 503 was a one-off, so running the five criteria again cannot show whether the fix works; it would probably pass either way. So there are two measurements. First, `fault_injection.py` swaps the model client for one that answers with the exact 503 text from the failed run, then runs the real agent on the real failed query (`graphic tee under $5`). It was written, and run against the unchanged code, before I touched `generate.py`. The third case is a guard that a bad key must *not* be retried. Second, the full five-criteria run again (below).
+
+| Fault injected (query `graphic tee under $5`) | Before | After |
+|---|---|---|
+| One 503, then the service recovers | FAIL: 1 request, run ended with the raw 503 text | PASS: 2 requests, waited 2 s, run reached the normal `(no match)` message |
+| A 503 that never clears | FAIL: 1 request, raw error dict shown | PASS: 4 requests, waited 2 s, 4 s, 8 s, then the readable "temporarily unavailable ... Wait a minute and try again" message |
+| Bad API key (must not retry) | PASS: 1 request | PASS: 1 request, no retries |
+| **Cases passing** | **1 of 3** | **3 of 3** |
+
+Output: `results/fault_injection_before.txt` and `results/fault_injection_after.txt`.
 
 ### Run Log — After
 
+Produced by `python score_run.py --label after` with the same 11 scenarios, one run per query, cache off, and the same scoring rules as the before run. Full output: `results/scored_2026-10-14_0049_after.md` and `results/run_2026-10-14_0049_after.md`. The code that run used is the code that is submitted (see the second improvement below).
+
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. A matching query completes all three tools | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. An impossible query stops before the second tool | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. Item in session matches the item passed to suggest_outfit | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 4. Fit card text contains the item's price | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 5. `(from database)` on matches, `(no match)` and no fit card on stops | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 
-**Did it help, and how do I know:**
+Impossible try 4 (`graphic tee under $5`), which failed before, now:
 
-<!-- If it made things worse, say that. Honestly reported, that earns full
-     credit and is more interesting than one that worked. -->
+```
+(no match) Nothing matched 'graphic tee', under $5. Try different keywords, a higher budget.
+```
+
+**Did it help, and how do I know:** Yes for the thing I fixed, but the table cannot prove it. The fault-injection test can: 1 of 3 cases before, 3 of 3 after, and the bad-key guard still fails on the first request. In the after table every criterion is MET, including 2 and 5, which were MISSED before. But **no 503 happened during that run**: no `[model busy]` line was printed, and the run made exactly 23 model calls, which is what the 11 scenarios need with no retries. So none of the retry code ran. The most likely reason 2 and 5 flipped is that the outage did not happen again, not that the fix worked, and I would not claim the table shows an improvement. Criteria 1, 3 and 4 were 5 of 5 before and are 5 of 5 after, so nothing got worse. What it does not do: an outage longer than about 14 s still ends the run (now with a readable message).
+
+### Second improvement (stretch): the parse prompt. Tried, made things worse, reverted.
+
+**What I changed:** in `agent.py::_PARSE_PROMPT` I added a rule that a word like "medium" in "medium wash" or "medium brown" describes colour, not size, so it stays in the description and size is null.
+
+**Which failure it was meant to fix:** the pass that hides a bug in Diagnoses: "medium wash" parsed as size M, which hid real listings and, for a Levi's query, returned the wrong item with no error.
+
+**How I measured it:** `parse_check.py`, written and committed before the prompt was changed, calls the real model for 3 parses of each query. It has five trap queries (three of them not seen while diagnosing), seven real-size queries as a regression guard, and the Levi's query end to end.
+
+| `parse_check.py` | Before | After |
+|---|---|---|
+| Trap queries: size null, colour/wash words kept in the description | 2 of 5 | **5 of 5** |
+| Real-size queries: the size must still come back | 7 of 7 | **6 of 7** |
+| Levi's query returns the Levi's jeans (lst_001) | 0 of 1 (returned the denim vest, lst_038) | **1 of 1** |
+
+The guard caught a regression, and I re-measured it with 8 parses per query, old prompt (from the commit before the change) against the new one:
+
+| Real-size query, 8 parses each | Old prompt returns M | New prompt returns M |
+|---|---|---|
+| `vintage polo shirt in medium under $25` | 8 of 8 | 1 of 8 |
+| `size medium henley long sleeve` | 8 of 8 | 8 of 8 |
+| `a medium denim jacket under $50` | 8 of 8 | 0 of 8 |
+| **Total** | **24 of 24** | **9 of 24** |
+
+**Result: net worse.** The rule fixed the colour/wash phrasing but made the model drop "medium" as a size whenever it sits right before an item word ("a medium denim jacket"), which is a much more common way to ask than "medium wash". A dropped size is silent: the size filter disappears and the user sees every size. I reverted `agent.py` (commit `f2f3fb8`). The attempt (`67e6bef`), `parse_check.py` and the before, after and regression outputs (`results/parse_check_before.txt`, `results/parse_check_after.txt`, `results/parse_regression_check.txt`) stay in the repo. I did not run the five criteria on the attempt: the parse check had already shown it was worse, and I reverted it. A `git diff` confirms the submitted code is identical to what the after run measured.
 
 
 
@@ -414,9 +478,15 @@ $ python app.py ask 'corduroy trucker jacket size L under $60'     # 3. model un
 
 ## What's Still Broken
 
-<!-- For each criterion still missed: what you'd do, and why you stopped where
-     you did. "I ran out of time" is fine if it's true. Pretending nothing is
-     left is not. -->
+No criterion is missed in the after run, but that does not mean nothing is left. These are the things I know are still wrong, most serious first.
+
+1. **A size word inside an item name is still read as a size** (`agent.py::_PARSE_PROMPT`, the parse step). "medium wash" comes back as size M, so a real listing in another size is hidden and the agent can return the wrong item with no error: for `medium wash Levi's 501 jeans under $40` it returned a denim vest. *What I'd do:* stop leaving the decision to the model alone. After parsing, keep a returned size only if the query contains a size cue (a "size X" phrase, "in X", a letter size such as S/M, or a shoe number), and drop it otherwise; then re-run `parse_check.py`, whose real-size guard has a clean baseline (7 of 7, and 24 of 24 parses over eight repeats). *Why I stopped:* my one prompt-only attempt traded this bug for a worse one and I reverted it, and a code-side check would be a third change, past the two changes this unit allows (the MCP move and the improvement, plus the one stretch I declared).
+2. **My five criteria cannot see a wrong answer.** Criteria 1 and 3 check that a run completed and that the item stayed the same item, not that it is the item the user asked for, which is why the Levi's run above would have scored PASS. *What I'd do:* tighten criterion 1 to "the selected item is the one a correct parse would select"; `scenarios.py` already records that expected item (`expect.top`) for each matching query. *Why I stopped:* a criterion may only be revised when it could not be measured, and this one could be, it just measures too little.
+3. **Two criteria are close to unmissable by construction.** Criterion 3 cannot fail unless the code changes (`selected_item` is `search_results[0]`, passed straight on), and criterion 5's tags are added by code, so it only fails if criterion 1 or 2 already failed. In the before run it failed only through criterion 2's 503. Criterion 1 scored 5 of 5 against a target of 4, twice.
+4. **`MCPError` is not caught.** If the MCP server will not start, `run_agent` raises it uncaught: `app.py` prints `MCPError: ...` and `run_eval.py` logs the try as crashed. *What I'd do:* catch it next to `ModelUnavailable` with a message that says to run `python mcp_server.py` to see why. *Why I stopped:* it is a third change, and I decided to list it instead.
+5. **The retry is short and narrow.** It covers 500/503/504 for about 14 s; a longer outage still ends the run (now with a readable message), and a dropped connection or timeout is not retried. I could not show it working in a real run, only under fault injection.
+6. **Empty-wardrobe advice can editorialise.** In the one run I triggered on purpose (Loop Trace, failure mode 2) the outfit opened with "Skip it at $42", and the fit card then said the jacket was too expensive. No crash and no empty string, but a caption that talks the find down. None of my criteria measure tone, and the cause is the empty-wardrobe prompt in `tools.py::suggest_outfit`. I did not touch it.
+7. **Limits of the test itself.** Each criterion has five tries from five different queries, one run each, so no query was ever repeated and run-to-run flakiness of a single query is not measured. `parse_check.py` shows it exists: the Levi's parse returned `[None, 'M', None]` on identical calls at temperature 0, so "temperature 0" does not make the parse deterministic. Also, `trace.step()` in the provided `trace.py` prints on every run, not only with `--trace`.
 
 
 
