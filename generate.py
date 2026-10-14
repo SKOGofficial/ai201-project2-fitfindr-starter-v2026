@@ -201,7 +201,23 @@ def _record_tokens(response) -> None:
 # ─── The call ────────────────────────────────────────────────────────────────
 
 
-def _explain(exc: Exception) -> str:
+def _is_transient(exc: Exception) -> bool:
+    """
+    A failure on the service's side that usually clears by itself: a 500, 503 or
+    504, or wording like "unavailable" / "overloaded" / "deadline exceeded".
+    A bad key, a wrong model name or a rate limit are NOT transient in this
+    sense — retrying them can't help, so they keep failing fast.
+    """
+    message = str(exc).lower()
+    return (
+        re.search(r"\b(500|503|504)\b", message) is not None
+        or "unavailable" in message
+        or "overloaded" in message
+        or "deadline exceeded" in message
+    )
+
+
+def _explain(exc: Exception, retried: int = 0) -> str:
     """Turn a provider exception into something a person can act on."""
     message = str(exc).lower()
     if "api key" in message or "api_key" in message or "unauthenticated" in message:
@@ -214,6 +230,12 @@ def _explain(exc: Exception) -> str:
             f"The model name '{config.MODEL}' did not resolve. If you changed "
             f"AI201_MODEL in your .env, put it back. Otherwise post in the help "
             f"channel — this is not something you caused."
+        )
+    if _is_transient(exc):
+        still = f" (it was still unavailable after {retried} retries)" if retried else ""
+        return (
+            f"The model service is temporarily unavailable{still}. This is on the "
+            f"service's side, not yours. Wait a minute and try again."
         )
     if "connection" in message or "timeout" in message or "network" in message:
         return "Couldn't reach the model. Check your internet connection and try again."
@@ -296,6 +318,7 @@ def generate(
     _check_budget()
 
     last_error: Exception | None = None
+    transient_failures = 0
     for attempt in range(config.MAX_RETRIES):
         _wait_for_slot()
         try:
@@ -329,7 +352,19 @@ def generate(
                 or "rate" in message and "limit" in message
             )
             if not rate_limited:
-                raise ModelUnavailable(_explain(exc)) from exc
+                if _is_transient(exc) and transient_failures < config.TRANSIENT_RETRIES:
+                    transient_failures += 1
+                    wait = min(2.0 ** transient_failures, 8.0)
+                    print(
+                        f"  [model busy] the service said it is temporarily "
+                        f"unavailable. Waiting {wait:.0f}s, then trying again "
+                        f"(retry {transient_failures} of {config.TRANSIENT_RETRIES}).",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    time.sleep(wait)
+                    continue
+                raise ModelUnavailable(_explain(exc, transient_failures)) from exc
             backoff = _retry_delay(exc, attempt)
             print(
                 f"  [rate limit] service pushed back. Waiting {backoff:.0f}s "

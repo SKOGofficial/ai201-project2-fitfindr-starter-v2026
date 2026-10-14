@@ -1,0 +1,18 @@
+Query: 'graphic tee under $5'   (cache off; only the model transport is faked)
+
+--- 1. one 503, then the service recovers
+    model requests made: 2   delays it would have slept: [2.0]
+    session['error']: "(no match) Nothing matched 'graphic tee', under $5. Try different keywords, a higher budget."
+    PASS: retried past the 503 and the run reached the branch normally
+
+--- 2. a 503 that never clears (outage)
+    model requests made: 4   delays it would have slept: [2.0, 4.0, 8.0]
+    session['error']: "The model couldn't be reached, so the run stopped early: The model service is temporarily unavailable (it was still unavailable after 3 retries). This is on the service's side, not yours. Wait a minute and try again."
+    PASS: readable message that says what to do, after 4 request(s)
+
+--- 3. bad API key (must NOT retry)
+    model requests made: 1   delays it would have slept: []
+    session['error']: "The model couldn't be reached, so the run stopped early: The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com."
+    PASS: failed on the first request, no retries, message names the key
+
+3/3 cases pass

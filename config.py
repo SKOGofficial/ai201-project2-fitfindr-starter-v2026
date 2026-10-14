@@ -85,6 +85,10 @@ MODEL = os.getenv("AI201_MODEL", "gemini-3.5-flash-lite")
 REQUESTS_PER_MINUTE = 15
 SESSION_REQUEST_BUDGET = 300
 MAX_RETRIES = 5
+# How many times to retry when the service itself is temporarily unavailable
+# (a 500/503/504), waiting 2s, 4s, 8s between tries. Bad keys and wrong model
+# names are never retried.
+TRANSIENT_RETRIES = 3
 
 CACHE_DIR = ROOT / ".cache"
 
