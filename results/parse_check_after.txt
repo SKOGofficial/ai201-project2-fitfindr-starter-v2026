@@ -1,0 +1,39 @@
+  [rate limit] service pushed back. Waiting 53s (attempt 1 of 5). This is the limiter doing its job, not a bug.
+  [rate limit] 15 requests used this minute. Waiting 51s. This is normal.
+  [rate limit] 15 requests used this minute. Waiting 50s. This is normal.
+Parse prompt check — model really called, 3 parses per query
+
+TRAPS: size must be null, and the colour/wash words must stay in the description
+  PASS  (seen)   'a medium wash denim vest, nothing over $30'
+        sizes: [None, None, None]   description: 'medium wash denim vest'
+  PASS  (seen)   "medium wash Levi's 501 jeans under $40"
+        sizes: [None, None, None]   description: "medium wash Levi's 501 jeans"
+  PASS  (unseen) 'medium wash denim shorts'
+        sizes: [None, None, None]   description: 'medium wash denim shorts'
+  PASS  (unseen) 'a medium brown leather belt under $20'
+        sizes: [None, None, None]   description: 'medium brown leather belt'
+  PASS  (unseen) 'dark wash baggy jeans under $40'
+        sizes: [None, None, None]   description: 'dark wash baggy jeans'
+
+SIZES: a real size must still come back as that size
+  PASS  (seen)   'a medium sized denim vest under $30'
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+  PASS  (seen)   '90s track jacket in size M'
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+  PASS  (seen)   'platform sneakers size 8'
+        sizes: ['8', '8', 'US 8']   (accepted: ['8', 'us 8'])
+  PASS  (unseen) 'crochet top in S/M under $25'
+        sizes: ['S/M', 'S/M', 'S/M']   (accepted: ['s/m'])
+  FAIL  (unseen) 'vintage polo shirt in medium under $25'
+        sizes: [None, 'M', None]   (accepted: ['m'])
+  PASS  (unseen) "I'm a medium, looking for a flannel shirt"
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+  PASS  (unseen) 'size medium henley long sleeve'
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+
+END TO END: the Levi's query through the whole agent
+  PASS  "medium wash Levi's 501 jeans under $40"
+        parsed: {'description': "medium wash Levi's 501 jeans", 'size': None, 'max_price': 40.0}
+        selected_item: lst_001 — Vintage Levi's 501 Jeans — Medium Wash   (the user asked for lst_001)
+
+Traps 5/5 · Sizes 6/7 · End to end 1/1

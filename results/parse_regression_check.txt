@@ -1,0 +1,17 @@
+  [rate limit] 15 requests used this minute. Waiting 51s. This is normal.
+  [rate limit] 15 requests used this minute. Waiting 49s. This is normal.
+  [rate limit] 15 requests used this minute. Waiting 48s. This is normal.
+Old prompt (commit 633f106) vs new prompt (working tree), 8 real parses each, temperature 0.0, cache off.
+Real-size queries: the size must come back as M.
+
+'vintage polo shirt in medium under $25'
+   old: 8/8 returned M   ['M', 'M', 'M', 'M', 'M', 'M', 'M', 'M']
+   new: 1/8 returned M   ['M', None, None, None, None, None, None, None]
+'size medium henley long sleeve'
+   old: 8/8 returned M   ['M', 'M', 'M', 'M', 'M', 'M', 'M', 'M']
+   new: 8/8 returned M   ['M', 'M', 'M', 'M', 'M', 'M', 'M', 'M']
+'a medium denim jacket under $50'
+   old: 8/8 returned M   ['M', 'M', 'M', 'M', 'M', 'M', 'M', 'M']
+   new: 0/8 returned M   [None, None, None, None, None, None, None, None]
+
+Total real-size parses correct: old 24/24, new 9/24
