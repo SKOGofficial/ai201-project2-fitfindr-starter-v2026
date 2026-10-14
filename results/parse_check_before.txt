@@ -1,0 +1,38 @@
+  [rate limit] 15 requests used this minute. Waiting 51s. This is normal.
+  [rate limit] 15 requests used this minute. Waiting 51s. This is normal.
+Parse prompt check — model really called, 3 parses per query
+
+TRAPS: size must be null, and the colour/wash words must stay in the description
+  FAIL  (seen)   'a medium wash denim vest, nothing over $30'
+        sizes: ['M', 'M', 'M']   description: 'medium wash denim vest'
+  FAIL  (seen)   "medium wash Levi's 501 jeans under $40"
+        sizes: [None, 'M', None]   description: "medium wash Levi's 501 jeans"
+  PASS  (unseen) 'medium wash denim shorts'
+        sizes: [None, None, None]   description: 'medium wash denim shorts'
+  FAIL  (unseen) 'a medium brown leather belt under $20'
+        sizes: ['M', 'M', 'M']   description: 'brown leather belt'
+  PASS  (unseen) 'dark wash baggy jeans under $40'
+        sizes: [None, None, None]   description: 'dark wash baggy jeans'
+
+SIZES: a real size must still come back as that size
+  PASS  (seen)   'a medium sized denim vest under $30'
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+  PASS  (seen)   '90s track jacket in size M'
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+  PASS  (seen)   'platform sneakers size 8'
+        sizes: ['US 8', 'US 8', 'US 8']   (accepted: ['8', 'us 8'])
+  PASS  (unseen) 'crochet top in S/M under $25'
+        sizes: ['S/M', 'S/M', 'S/M']   (accepted: ['s/m'])
+  PASS  (unseen) 'vintage polo shirt in medium under $25'
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+  PASS  (unseen) "I'm a medium, looking for a flannel shirt"
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+  PASS  (unseen) 'size medium henley long sleeve'
+        sizes: ['M', 'M', 'M']   (accepted: ['m'])
+
+END TO END: the Levi's query through the whole agent
+  FAIL  "medium wash Levi's 501 jeans under $40"
+        parsed: {'description': "medium wash Levi's 501 jeans", 'size': 'M', 'max_price': 40.0}
+        selected_item: lst_038 — Denim Vest — Medium Wash, Studded   (the user asked for lst_001)
+
+Traps 2/5 · Sizes 7/7 · End to end 0/1
