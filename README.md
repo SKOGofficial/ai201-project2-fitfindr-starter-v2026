@@ -263,19 +263,67 @@ that produced it:
 **Happy path**
 
 ```
-
+$ python app.py ask 'vintage graphic tee under $30' --trace
+[1] parse query (model)
+      in:  vintage graphic tee under $30
+      out: description='vintage graphic tee', size=None, max_price=30.0
+[2] search_listings (via MCP)
+      in:  description='vintage graphic tee', size=None, max_price=30.0
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+      →    branch: results found -> selected_item = first result (id lst_002)
+[3] suggest_outfit (model)
+      in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); wardrobe: 10 items
+      out: **Outfit 1: Streetwear Contrast** Pair the Y2K Baby Tee with your **Baggy straight-leg jeans, dark wash**. Add…
+[4] create_fit_card (model)
+      in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); outfit: 620 chars
+      out: Found the ultimate 2000s butterfly tee on depop for just $18 and I am obsessed. It’s giving total sweet-meets-…
+      →    done: fit card tagged and stored in session
 ```
 
 **Empty search**
 
 ```
-
+$ python app.py ask 'designer ballgown size XXS under $5' --trace
+[1] parse query (model)
+      in:  designer ballgown size XXS under $5
+      out: description='designer ballgown', size='XXS', max_price=5.0
+[2] search_listings (via MCP)
+      in:  description='designer ballgown', size='XXS', max_price=5.0
+      out: [] (empty)
+      →    branch: empty -> set session['error'], stop before suggest_outfit
 ```
 
-**On the MCP move:** <!-- what changed in your code, and whether anything
-behaved differently afterwards. If the rewire didn't work, say exactly where it
-broke — the error text and the last thing that worked. That earns the point in
-full. -->
+**On the MCP move:** `search_listings` is now registered in `mcp_server.py` (`@mcp.tool()`, with a description that gives types, units, the size-match rule and the empty case), and `agent.py::run_agent` calls it with `mcp_client.call_tool("search_listings", {...})` instead of importing it from `tools.py`. The other two tools are still direct calls. I compared the direct function and the MCP call on 7 queries (with and without size and price, plus two that match nothing): the returned lists were identical, same dicts in the same order, and the empty case still comes back as `[]`, so the branch in `run_agent` needed no change. What did change: each call starts and stops a fresh server process, so a search went from about 6 ms direct to about 700 ms via MCP (2.4 s on the first, cold call); and there is now a way to fail that didn't exist before (`mcp_client.MCPError` if the server won't start or rejects the call), which `run_agent` does not catch.
+
+**Failure modes triggered on purpose** (real output; none of the three crashed, so no new handlers were needed)
+
+```
+$ python app.py ask 'designer ballgown size XXS under $5'          # 1. empty search
+  (no match) Nothing matched 'designer ballgown', size XXS, under $5. Try different keywords, a different size or none, a higher budget.
+```
+
+```
+$ python app.py ask 'denim jacket under $50' --empty-wardrobe      # 2. empty wardrobe
+(running with an empty wardrobe)
+
+  Found:    Denim Jacket — Light Wash, Cropped — $42.0 on poshmark
+
+  Outfit:   **Verdict:** Skip it at $42. Light wash cropped denim is common at thrift stores for under $20. 
+
+If you already own it, try these:
+
+*   **Model-Off-Duty Streetwear:** Pair with baggy cargo trousers in olive green, a fitted ribbed white tank top, and chunky retro sneakers. 
+*   **Balancing Proportions:** Layer it over a black slip dress that hits at the midi length. Add combat boots to ground the sweetness of the dress.
+
+  Fit card: Spotted this cute cropped light wash denim jacket on Poshmark, but $42 is honestly way too steep for something you can easily find at a local thrift for half that. Cute model-off-duty potential if you already have it in your closet, though!
+(from database)
+```
+
+```
+$ python app.py ask 'corduroy trucker jacket size L under $60'     # 3. model unavailable
+  (bad key supplied through the GEMINI_API_KEY environment variable for this one run; .env was not edited)
+  The model couldn't be reached, so the run stopped early: The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com.
+```
 
 
 

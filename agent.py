@@ -57,6 +57,16 @@ def _parse_query(query: str) -> dict:
     }
 
 
+def _fmt_parsed(parsed: dict) -> str:
+    """The parsed filters as one readable line for the trace (trace.step would otherwise show only dict keys)."""
+    return (f"description={parsed['description']!r}, size={parsed['size']!r}, "
+            f"max_price={parsed['max_price']!r}")
+
+
+def _fmt_item(item: dict) -> str:
+    return f"item id {item['id']} ({item['title']}, ${item['price']:g})"
+
+
 def _no_match_message(parsed: dict) -> str:
     tried = [f"'{parsed['description']}'"]
     if parsed["size"]:
@@ -172,6 +182,8 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
             if step_name == "parse":
                 session["parsed"] = _parse_query(query)
+                trace.step("parse query (model)", inputs=query,
+                           returned=_fmt_parsed(session["parsed"]))
                 step_name = "search"
 
             elif step_name == "search":
@@ -184,22 +196,41 @@ def run_agent(query: str, wardrobe: dict) -> dict:
                 # THE BRANCH: nothing found -> explain and stop; fit_card stays None.
                 if not session["search_results"]:
                     session["error"] = _no_match_message(parsed)
+                    trace.step("search_listings (via MCP)", inputs=_fmt_parsed(parsed),
+                               returned=session["search_results"],
+                               note="branch: empty -> set session['error'], stop before suggest_outfit")
                     return session
                 session["selected_item"] = session["search_results"][0]
+                trace.step("search_listings (via MCP)", inputs=_fmt_parsed(parsed),
+                           returned=session["search_results"],
+                           note=f"branch: results found -> selected_item = first result "
+                                f"(id {session['selected_item']['id']})")
                 step_name = "outfit"
 
             elif step_name == "outfit":
                 session["outfit_suggestion"] = suggest_outfit(
                     session["selected_item"], session["wardrobe"]
                 )
+                n_owned = len((session["wardrobe"] or {}).get("items") or [])
+                trace.step("suggest_outfit (model)",
+                           inputs=f"{_fmt_item(session['selected_item'])}; "
+                                  f"wardrobe: {n_owned} items" + (" (empty)" if not n_owned else ""),
+                           returned=session["outfit_suggestion"])
                 step_name = "card"
 
             elif step_name == "card":
                 card = create_fit_card(session["outfit_suggestion"], session["selected_item"])
                 session["fit_card"] = f"{card}\n{FROM_DATABASE_TAG}"
+                trace.step("create_fit_card (model)",
+                           inputs=f"{_fmt_item(session['selected_item'])}; "
+                                  f"outfit: {len(session['outfit_suggestion'])} chars",
+                           returned=session["fit_card"],
+                           note="done: fit card tagged and stored in session")
                 step_name = "done"
     except ModelUnavailable as exc:
         session["error"] = f"The model couldn't be reached, so the run stopped early: {exc}"
+        trace.step(f"{step_name} (model unavailable)", returned=str(exc),
+                   note="stopped early: ModelUnavailable caught in run_agent")
     return session
 
 
