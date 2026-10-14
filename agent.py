@@ -29,10 +29,7 @@ NO_MATCH_TAG = "(no match)"
 _PARSE_PROMPT = """Extract search filters from this secondhand clothing request.
 Reply with ONLY a JSON object with exactly these keys:
   "description": the item keywords (string, without the size or price words),
-  "size": the size the shopper wants to wear, as a string such as "M" or "US 8", or null.
-          A word like "medium" in "medium wash" or "medium brown" describes the item's
-          colour or wash, not a size: keep it in "description" and use null for "size"
-          unless the shopper also asks for a size,
+  "size": the size requested as a string such as "M" or "US 8", or null,
   "max_price": the price ceiling as a number, or null.
 
 Request: {query}"""
