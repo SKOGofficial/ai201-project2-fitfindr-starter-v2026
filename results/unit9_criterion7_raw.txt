@@ -1,0 +1,177 @@
+2026-11-18T05:24:35.923682801Z  10.238.25.84 - - [18/Nov/2026:05:24:35 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:24:37.802438582Z  [81] parse query (model)
+2026-11-18T05:24:37.802461962Z        in:  denim jacket under $50
+2026-11-18T05:24:37.802467483Z        out: description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:24:37.908985816Z    [serve] another request is still running. This one is waiting its turn — serve.py handles one at a time, on purpose.
+2026-11-18T05:24:41.008128301Z  10.238.25.84 - - [18/Nov/2026:05:24:41 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:24:41.008149012Z  10.238.25.84 - - [18/Nov/2026:05:24:41 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:24:42.219191163Z  [82] search_listings (via MCP)
+2026-11-18T05:24:42.219224044Z        in:  description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:24:42.219230934Z        out: 7 items: Denim Jacket — Light Wash, Cropped, Vintage Levi's 501 Jeans — Medium Wash, 90s Track Jacket — Navy/White Stripe … +4 more
+2026-11-18T05:24:42.219237414Z        →    branch: results found -> selected_item = first result (id lst_007)
+2026-11-18T05:24:42.302840778Z  [83] suggest_outfit (model)
+2026-11-18T05:24:42.304171797Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); wardrobe: 10 items
+2026-11-18T05:24:42.304182547Z        out: **Outfit 1: Contrast Streetwear** Pair the light wash cropped denim jacket with your baggy straight-leg jeans …
+2026-11-18T05:24:42.304208608Z  [84] create_fit_card (model)
+2026-11-18T05:24:42.304214958Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); outfit: 563 chars
+2026-11-18T05:24:42.304220198Z        out: Obsessed with this light wash cropped denim jacket I just added to my Poshmark for $42! It’s giving effortless…
+2026-11-18T05:24:42.304226198Z        →    done: fit card tagged and stored in session
+2026-11-18T05:24:42.304243239Z  {"request_id": 31, "route": "/ask", "status": "ok", "duration_ms": 4501.1, "waited_for_lock": false, "model_calls": 0, "tokens": 0, "query_chars": 22}
+2026-11-18T05:24:42.304248769Z  127.0.0.1 - - [18/Nov/2026:05:24:42 +0000] "POST /ask HTTP/1.1" 200 5896 "-" "curl/8.11.0"
+2026-11-18T05:24:42.304269639Z  [85] parse query (model)
+2026-11-18T05:24:42.30427603Z        in:  vintage graphic tee under $30
+2026-11-18T05:24:42.30427953Z        out: description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:24:46.002515155Z  10.238.25.84 - - [18/Nov/2026:05:24:45 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:24:46.412706602Z  [86] search_listings (via MCP)
+2026-11-18T05:24:46.412734453Z        in:  description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:24:46.412740114Z        out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+2026-11-18T05:24:46.412743054Z        →    branch: results found -> selected_item = first result (id lst_002)
+2026-11-18T05:24:46.41295012Z  [87] suggest_outfit (model)
+2026-11-18T05:24:46.41295956Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); wardrobe: 10 items
+2026-11-18T05:24:46.41296543Z        out: **Outfit 1: Y2K Streetwear** Pair the butterfly baby tee with your **Baggy straight-leg jeans** to balance the…
+2026-11-18T05:24:46.413125845Z  [88] create_fit_card (model)
+2026-11-18T05:24:46.413135185Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); outfit: 594 chars
+2026-11-18T05:24:46.413140795Z        out: Found this absolute dream of a butterfly baby tee on depop for just $18 and I am obsessed. It’s giving major Y…
+2026-11-18T05:24:46.413146745Z        →    done: fit card tagged and stored in session
+2026-11-18T05:24:46.413157375Z  {"request_id": 32, "route": "/ask", "status": "ok", "duration_ms": 8505.0, "waited_for_lock": true, "model_calls": 0, "tokens": 0, "query_chars": 29}
+2026-11-18T05:24:46.413635279Z  127.0.0.1 - - [18/Nov/2026:05:24:46 +0000] "POST /ask HTTP/1.1" 200 7066 "-" "curl/8.11.0"
+2026-11-18T05:24:46.945721353Z  [89] parse query (model)
+2026-11-18T05:24:46.945743853Z        in:  vintage graphic tee under $30
+2026-11-18T05:24:46.945749953Z        out: description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:24:46.954338411Z    [serve] another request is still running. This one is waiting its turn — serve.py handles one at a time, on purpose.
+2026-11-18T05:24:50.923489398Z  10.238.25.84 - - [18/Nov/2026:05:24:50 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:24:51.103224847Z  [90] search_listings (via MCP)
+2026-11-18T05:24:51.103243318Z        in:  description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:24:51.103248978Z        out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+2026-11-18T05:24:51.103253468Z        →    branch: results found -> selected_item = first result (id lst_002)
+2026-11-18T05:24:51.103525766Z  [91] suggest_outfit (model)
+2026-11-18T05:24:51.103535026Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); wardrobe: 10 items
+2026-11-18T05:24:51.103540316Z        out: **Outfit 1: Y2K Streetwear** Pair the butterfly baby tee with your **Baggy straight-leg jeans** to balance the…
+2026-11-18T05:24:51.103757282Z  [92] create_fit_card (model)
+2026-11-18T05:24:51.103770363Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); outfit: 594 chars
+2026-11-18T05:24:51.103775983Z        out: Found this absolute dream of a butterfly baby tee on depop for just $18 and I am obsessed. It’s giving major Y…
+2026-11-18T05:24:51.103780443Z        →    done: fit card tagged and stored in session
+2026-11-18T05:24:51.103790403Z  {"request_id": 33, "route": "/ask", "status": "ok", "duration_ms": 4158.5, "waited_for_lock": false, "model_calls": 0, "tokens": 0, "query_chars": 29}
+2026-11-18T05:24:51.105118712Z  [93] parse query (model)
+2026-11-18T05:24:51.105141402Z        in:  denim jacket under $50
+2026-11-18T05:24:51.105145722Z        out: description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:24:51.106659706Z  127.0.0.1 - - [18/Nov/2026:05:24:51 +0000] "POST /ask HTTP/1.1" 200 7066 "-" "curl/8.11.0"
+2026-11-18T05:24:55.814484425Z  [94] search_listings (via MCP)
+2026-11-18T05:24:55.814509806Z        in:  description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:24:55.814514566Z        out: 7 items: Denim Jacket — Light Wash, Cropped, Vintage Levi's 501 Jeans — Medium Wash, 90s Track Jacket — Navy/White Stripe … +4 more
+2026-11-18T05:24:55.814518866Z        →    branch: results found -> selected_item = first result (id lst_007)
+2026-11-18T05:24:55.814753673Z  [95] suggest_outfit (model)
+2026-11-18T05:24:55.814761543Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); wardrobe: 10 items
+2026-11-18T05:24:55.814766633Z        out: **Outfit 1: Contrast Streetwear** Pair the light wash cropped denim jacket with your baggy straight-leg jeans …
+2026-11-18T05:24:55.814940858Z  [96] create_fit_card (model)
+2026-11-18T05:24:55.814948638Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); outfit: 563 chars
+2026-11-18T05:24:55.814953339Z        out: Obsessed with this light wash cropped denim jacket I just added to my Poshmark for $42! It’s giving effortless…
+2026-11-18T05:24:55.814956159Z        →    done: fit card tagged and stored in session
+2026-11-18T05:24:55.814958968Z  {"request_id": 34, "route": "/ask", "status": "ok", "duration_ms": 8860.8, "waited_for_lock": true, "model_calls": 0, "tokens": 0, "query_chars": 22}
+2026-11-18T05:24:55.815517845Z  127.0.0.1 - - [18/Nov/2026:05:24:55 +0000] "POST /ask HTTP/1.1" 200 5896 "-" "curl/8.11.0"
+2026-11-18T05:24:55.923529069Z  10.238.25.84 - - [18/Nov/2026:05:24:55 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:24:56.355274887Z  [97] parse query (model)
+2026-11-18T05:24:56.355295798Z        in:  denim jacket under $50
+2026-11-18T05:24:56.355300038Z        out: description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:24:56.371258056Z    [serve] another request is still running. This one is waiting its turn — serve.py handles one at a time, on purpose.
+2026-11-18T05:25:00.509335623Z  [98] search_listings (via MCP)
+2026-11-18T05:25:00.509419046Z        in:  description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:25:00.509425756Z        out: 7 items: Denim Jacket — Light Wash, Cropped, Vintage Levi's 501 Jeans — Medium Wash, 90s Track Jacket — Navy/White Stripe … +4 more
+2026-11-18T05:25:00.509431006Z        →    branch: results found -> selected_item = first result (id lst_007)
+2026-11-18T05:25:00.509501338Z  [99] suggest_outfit (model)
+2026-11-18T05:25:00.509516309Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); wardrobe: 10 items
+2026-11-18T05:25:00.509523099Z        out: **Outfit 1: Contrast Streetwear** Pair the light wash cropped denim jacket with your baggy straight-leg jeans …
+2026-11-18T05:25:00.509676823Z  [100] create_fit_card (model)
+2026-11-18T05:25:00.509685044Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); outfit: 563 chars
+2026-11-18T05:25:00.509690004Z        out: Obsessed with this light wash cropped denim jacket I just added to my Poshmark for $42! It’s giving effortless…
+2026-11-18T05:25:00.509695034Z        →    done: fit card tagged and stored in session
+2026-11-18T05:25:00.509706284Z  {"request_id": 35, "route": "/ask", "status": "ok", "duration_ms": 4155.1, "waited_for_lock": false, "model_calls": 0, "tokens": 0, "query_chars": 22}
+2026-11-18T05:25:00.511418953Z  127.0.0.1 - - [18/Nov/2026:05:25:00 +0000] "POST /ask HTTP/1.1" 200 5896 "-" "curl/8.11.0"
+2026-11-18T05:25:00.511435364Z  [101] parse query (model)
+2026-11-18T05:25:00.511438634Z        in:  vintage graphic tee under $30
+2026-11-18T05:25:00.511441184Z        out: description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:25:00.923718683Z  10.238.25.84 - - [18/Nov/2026:05:25:00 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:25:04.618874351Z  [102] search_listings (via MCP)
+2026-11-18T05:25:04.618902602Z        in:  description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:25:04.618906962Z        out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+2026-11-18T05:25:04.618910202Z        →    branch: results found -> selected_item = first result (id lst_002)
+2026-11-18T05:25:04.619159699Z  [103] suggest_outfit (model)
+2026-11-18T05:25:04.619170999Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); wardrobe: 10 items
+2026-11-18T05:25:04.61917367Z        out: **Outfit 1: Y2K Streetwear** Pair the butterfly baby tee with your **Baggy straight-leg jeans** to balance the…
+2026-11-18T05:25:04.619320824Z  [104] create_fit_card (model)
+2026-11-18T05:25:04.619325314Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); outfit: 594 chars
+2026-11-18T05:25:04.619328594Z        out: Found this absolute dream of a butterfly baby tee on depop for just $18 and I am obsessed. It’s giving major Y…
+2026-11-18T05:25:04.619330994Z        →    done: fit card tagged and stored in session
+2026-11-18T05:25:04.619333454Z  {"request_id": 36, "route": "/ask", "status": "ok", "duration_ms": 8248.4, "waited_for_lock": true, "model_calls": 0, "tokens": 0, "query_chars": 29}
+2026-11-18T05:25:04.619859539Z  127.0.0.1 - - [18/Nov/2026:05:25:04 +0000] "POST /ask HTTP/1.1" 200 7066 "-" "curl/8.11.0"
+2026-11-18T05:25:05.130739912Z  [105] parse query (model)
+2026-11-18T05:25:05.130756302Z        in:  denim jacket under $50
+2026-11-18T05:25:05.130760222Z        out: description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:25:05.144535698Z    [serve] another request is still running. This one is waiting its turn — serve.py handles one at a time, on purpose.
+2026-11-18T05:25:05.924189555Z  10.238.25.84 - - [18/Nov/2026:05:25:05 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:25:10.011770808Z  [106] search_listings (via MCP)
+2026-11-18T05:25:10.011798989Z        in:  description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:25:10.011804019Z        out: 7 items: Denim Jacket — Light Wash, Cropped, Vintage Levi's 501 Jeans — Medium Wash, 90s Track Jacket — Navy/White Stripe … +4 more
+2026-11-18T05:25:10.011808369Z        →    branch: results found -> selected_item = first result (id lst_007)
+2026-11-18T05:25:10.012136049Z  [107] suggest_outfit (model)
+2026-11-18T05:25:10.012149009Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); wardrobe: 10 items
+2026-11-18T05:25:10.012153609Z        out: **Outfit 1: Contrast Streetwear** Pair the light wash cropped denim jacket with your baggy straight-leg jeans …
+2026-11-18T05:25:10.012310834Z  [108] create_fit_card (model)
+2026-11-18T05:25:10.012318204Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); outfit: 563 chars
+2026-11-18T05:25:10.012322334Z        out: Obsessed with this light wash cropped denim jacket I just added to my Poshmark for $42! It’s giving effortless…
+2026-11-18T05:25:10.012341774Z        →    done: fit card tagged and stored in session
+2026-11-18T05:25:10.012351955Z  {"request_id": 37, "route": "/ask", "status": "ok", "duration_ms": 4882.0, "waited_for_lock": false, "model_calls": 0, "tokens": 0, "query_chars": 22}
+2026-11-18T05:25:10.012981663Z  127.0.0.1 - - [18/Nov/2026:05:25:10 +0000] "POST /ask HTTP/1.1" 200 5896 "-" "curl/8.11.0"
+2026-11-18T05:25:10.013203329Z  [109] parse query (model)
+2026-11-18T05:25:10.01321336Z        in:  vintage graphic tee under $30
+2026-11-18T05:25:10.013216Z        out: description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:25:11.003715804Z  10.238.25.84 - - [18/Nov/2026:05:25:11 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:25:11.003956111Z  10.238.25.84 - - [18/Nov/2026:05:25:11 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:25:14.221927962Z  [110] search_listings (via MCP)
+2026-11-18T05:25:14.221953963Z        in:  description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:25:14.221959123Z        out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+2026-11-18T05:25:14.221961723Z        →    branch: results found -> selected_item = first result (id lst_002)
+2026-11-18T05:25:14.302700141Z  [111] suggest_outfit (model)
+2026-11-18T05:25:14.302720621Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); wardrobe: 10 items
+2026-11-18T05:25:14.302726181Z        out: **Outfit 1: Y2K Streetwear** Pair the butterfly baby tee with your **Baggy straight-leg jeans** to balance the…
+2026-11-18T05:25:14.302969368Z  [112] create_fit_card (model)
+2026-11-18T05:25:14.302978178Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); outfit: 594 chars
+2026-11-18T05:25:14.302981438Z        out: Found this absolute dream of a butterfly baby tee on depop for just $18 and I am obsessed. It’s giving major Y…
+2026-11-18T05:25:14.302985899Z        →    done: fit card tagged and stored in session
+2026-11-18T05:25:14.302994939Z  {"request_id": 38, "route": "/ask", "status": "ok", "duration_ms": 9158.7, "waited_for_lock": true, "model_calls": 0, "tokens": 0, "query_chars": 29}
+2026-11-18T05:25:14.303695599Z  127.0.0.1 - - [18/Nov/2026:05:25:14 +0000] "POST /ask HTTP/1.1" 200 7066 "-" "curl/8.11.0"
+2026-11-18T05:25:14.871036746Z  [113] parse query (model)
+2026-11-18T05:25:14.871060657Z        in:  vintage graphic tee under $30
+2026-11-18T05:25:14.871065837Z        out: description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:25:15.102726267Z    [serve] another request is still running. This one is waiting its turn — serve.py handles one at a time, on purpose.
+2026-11-18T05:25:16.003814556Z  10.238.25.84 - - [18/Nov/2026:05:25:16 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:25:19.509522236Z  [114] search_listings (via MCP)
+2026-11-18T05:25:19.509546457Z        in:  description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:25:19.509553557Z        out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+2026-11-18T05:25:19.509557577Z        →    branch: results found -> selected_item = first result (id lst_002)
+2026-11-18T05:25:19.509815685Z  [115] suggest_outfit (model)
+2026-11-18T05:25:19.509824235Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); wardrobe: 10 items
+2026-11-18T05:25:19.509828955Z        out: **Outfit 1: Y2K Streetwear** Pair the butterfly baby tee with your **Baggy straight-leg jeans** to balance the…
+2026-11-18T05:25:19.50999454Z  [116] create_fit_card (model)
+2026-11-18T05:25:19.51000149Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); outfit: 594 chars
+2026-11-18T05:25:19.51000648Z        out: Found this absolute dream of a butterfly baby tee on depop for just $18 and I am obsessed. It’s giving major Y…
+2026-11-18T05:25:19.51000934Z        →    done: fit card tagged and stored in session
+2026-11-18T05:25:19.510037771Z  {"request_id": 39, "route": "/ask", "status": "ok", "duration_ms": 4640.2, "waited_for_lock": false, "model_calls": 0, "tokens": 0, "query_chars": 29}
+2026-11-18T05:25:19.510666849Z  127.0.0.1 - - [18/Nov/2026:05:25:19 +0000] "POST /ask HTTP/1.1" 200 7066 "-" "curl/8.11.0"
+2026-11-18T05:25:19.510935127Z  [117] parse query (model)
+2026-11-18T05:25:19.510942267Z        in:  denim jacket under $50
+2026-11-18T05:25:19.510946087Z        out: description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:25:20.923702144Z  10.238.25.84 - - [18/Nov/2026:05:25:20 +0000] "GET /health HTTP/1.1" 200 37 "-" "Render/1.0"
+2026-11-18T05:25:23.814981896Z  [118] search_listings (via MCP)
+2026-11-18T05:25:23.815000427Z        in:  description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:25:23.815005367Z        out: 7 items: Denim Jacket — Light Wash, Cropped, Vintage Levi's 501 Jeans — Medium Wash, 90s Track Jacket — Navy/White Stripe … +4 more
+2026-11-18T05:25:23.815009287Z        →    branch: results found -> selected_item = first result (id lst_007)
+2026-11-18T05:25:23.815285665Z  [119] suggest_outfit (model)
+2026-11-18T05:25:23.815296265Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); wardrobe: 10 items
+2026-11-18T05:25:23.815299935Z        out: **Outfit 1: Contrast Streetwear** Pair the light wash cropped denim jacket with your baggy straight-leg jeans …
+2026-11-18T05:25:23.815438369Z  [120] create_fit_card (model)
+2026-11-18T05:25:23.815445219Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); outfit: 563 chars
+2026-11-18T05:25:23.81544913Z        out: Obsessed with this light wash cropped denim jacket I just added to my Poshmark for $42! It’s giving effortless…
+2026-11-18T05:25:23.81545219Z        →    done: fit card tagged and stored in session
+2026-11-18T05:25:23.8154603Z  {"request_id": 40, "route": "/ask", "status": "ok", "duration_ms": 8783.5, "waited_for_lock": true, "model_calls": 0, "tokens": 0, "query_chars": 22}
+2026-11-18T05:25:23.816681265Z  127.0.0.1 - - [18/Nov/2026:05:25:23 +0000] "POST /ask HTTP/1.1" 200 5896 "-" "curl/8.11.0"
