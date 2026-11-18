@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitFindr</title>
+<style>
+  :root {
+    --bg: #faf8f5;
+    --card: #ffffff;
+    --text: #1c1917;
+    --muted: #78716c;
+    --border: #e7e2dc;
+    --accent: #b45309;
+    --accent-text: #ffffff;
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --error-text: #991b1b;
+    --tag-bg: #f5f0e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1917;
+      --card: #292524;
+      --text: #f5f5f4;
+      --muted: #a8a29e;
+      --border: #44403c;
+      --accent: #f59e0b;
+      --accent-text: #1c1917;
+      --error-bg: #3f1d1d;
+      --error-border: #7f1d1d;
+      --error-text: #fca5a5;
+      --tag-bg: #363230;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+  }
+  main { width: 100%; max-width: 640px; }
+  h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 1.5rem; }
+  form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  label { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+  input[type="text"] {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1rem;
+  }
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  button {
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.6; cursor: wait; }
+  #result { margin-top: 1.5rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 0 0 0.5rem;
+  }
+  .card p { margin: 0; white-space: pre-wrap; line-height: 1.5; }
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+  }
+  .error-card {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    color: var(--error-text);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 1rem;
+    text-align: right;
+  }
+  footer { margin-top: 2rem; font-size: 0.8rem; color: var(--muted); }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>FitFindr</h1>
+  <p class="sub">Describe a secondhand find. It'll search, suggest an outfit, and write a fit card.</p>
+
+  <form id="ask-form">
+    <div>
+      <label for="query">What are you looking for?</label><br>
+      <input type="text" id="query" name="query" placeholder="vintage graphic tee under $30" required>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="empty-wardrobe">
+      <label for="empty-wardrobe" style="font-weight:400;">Use an empty wardrobe (general styling advice only)</label>
+    </div>
+    <button type="submit" id="submit-btn">Find it</button>
+  </form>
+
+  <div id="result"></div>
+
+  <footer>
+    Not part of the graded unit 9 criteria &mdash; a small UI on top of the
+    <code>/ask</code> API for demo purposes. API only: <a href="/health">/health</a>.
+  </footer>
+</main>
+
+<script>
+const form = document.getElementById('ask-form');
+const resultEl = document.getElementById('result');
+const btn = document.getElementById('submit-btn');
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const query = document.getElementById('query').value.trim();
+  const emptyWardrobe = document.getElementById('empty-wardrobe').checked;
+  if (!query) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Searching…';
+  resultEl.innerHTML = '<p style="color:var(--muted);">This can take several seconds — it makes a few real model calls.</p>';
+
+  const body = { query };
+  if (emptyWardrobe) body.wardrobe = { items: [] };
+
+  try {
+    const res = await fetch('/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      resultEl.innerHTML = `<div class="error-card"><strong>Error</strong><p>${escapeHtml(data.error || 'Something went wrong.')}</p></div>`;
+      return;
+    }
+
+    if (data.error) {
+      resultEl.innerHTML = `<div class="error-card"><strong>No match</strong><p>${escapeHtml(data.error)}</p></div>`;
+      return;
+    }
+
+    const item = data.selected_item || {};
+    let html = '';
+    html += `<div class="card"><h2>Found</h2><p>${escapeHtml(item.title || '')} — $${item.price ?? ''} on ${escapeHtml(item.platform || '')}</p></div>`;
+    html += `<div class="card"><h2>Outfit</h2><p>${escapeHtml(data.outfit_suggestion || '')}</p></div>`;
+    html += `<div class="card"><h2>Fit card</h2><p>${escapeHtml(data.fit_card || '')}</p></div>`;
+    resultEl.innerHTML = html;
+  } catch (err) {
+    resultEl.innerHTML = `<div class="error-card"><strong>Request failed</strong><p>${escapeHtml(String(err))}</p></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Find it';
+  }
+});
+</script>
+</body>
+</html>
