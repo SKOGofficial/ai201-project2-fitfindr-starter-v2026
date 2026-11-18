@@ -1,0 +1,27 @@
+# Render Blueprint — unit 9.
+#
+# Why Render and not a serverless host: serve.py keeps one agent run at a
+# time behind a single lock (see the comment above `_one_at_a_time` in
+# serve.py) and spawns mcp_server.py as a subprocess over stdio for every
+# search. That needs one long-lived process, not a fleet of stateless
+# function invocations — a free Render web service is exactly that: one
+# persistent dyno running `gunicorn serve:app`.
+#
+# This file lets Render set itself up from the repo (New -> Blueprint in the
+# dashboard) instead of hand-filling the same few fields. GEMINI_API_KEY is
+# `sync: false` on purpose: Render will prompt for it in the dashboard and
+# store it as a secret, so the key is never written to this file or the repo.
+
+services:
+  - type: web
+    name: fitfindr
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn serve:app
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: GEMINI_API_KEY
+        sync: false
