@@ -5,6 +5,9 @@
 <div class="page-head">
   <h1>Results</h1>
   <p class="sub">&ldquo;{{ query }}&rdquo;</p>
+  {% if elapsed_seconds is not none and not error %}
+    <p class="muted">Found in {{ "%.1f"|format(elapsed_seconds) }}s</p>
+  {% endif %}
 </div>
 
 {% if error %}

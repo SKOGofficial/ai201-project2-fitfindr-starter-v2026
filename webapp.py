@@ -19,10 +19,13 @@ serve.py — not gevent/eventlet, for the same asyncio.run() reason documented
 there.
 """
 
+import json
 import os
 import secrets
+import sys
 import threading
 import time
+from typing import Optional
 
 import config  # noqa: F401 — loads .env, fixes Windows console encoding
 
@@ -30,6 +33,7 @@ from flask import Flask, flash, redirect, render_template, request, session, url
 
 import auth
 import supabase_client as db
+import trace as trace_module
 from agent import run_agent
 from utils.data_loader import get_empty_wardrobe, get_example_wardrobe
 
@@ -93,6 +97,49 @@ def inject_user():
         "user_id": auth.current_user_id(),
         "user_email": auth.current_user_email(),
     }
+
+
+# ── timing telemetry ──────────────────────────────────────────────────────────
+# Where does a search's ~7-9s actually go? run_agent() already calls
+# trace.step() at each of its four points (parse, search, suggest_outfit,
+# create_fit_card) — see trace.py. Rather than teach agent.py or trace.py
+# anything new (both are shared with serve.py, the graded unit 9 artifact,
+# and changing shared behavior there is out of scope for this branch), this
+# wraps trace.step() for the duration of one call: record how long it's been
+# since the last step, then call the real step() unchanged. The swap is safe
+# without extra locking because `_one_at_a_time` already guarantees only one
+# agent run — and so only one of these wrapped calls — executes at a time in
+# this process.
+
+def _run_agent_timed(query: str, wardrobe: dict):
+    """Returns (result, total_seconds, step_timings) where step_timings is
+    [(step_name, seconds_since_previous_step), ...]."""
+    step_timings = []
+    last = [time.perf_counter()]
+    original_step = trace_module.step
+
+    def timed_step(name, inputs=None, returned=None, note=""):
+        now = time.perf_counter()
+        step_timings.append((name, round(now - last[0], 3)))
+        last[0] = now
+        return original_step(name, inputs=inputs, returned=returned, note=note)
+
+    trace_module.step = timed_step
+    started = time.perf_counter()
+    try:
+        result = run_agent(query, wardrobe)
+    finally:
+        trace_module.step = original_step
+    total = round(time.perf_counter() - started, 3)
+    return result, total, step_timings
+
+
+def _log_timing(query: str, total: float, step_timings: list) -> None:
+    print(json.dumps({
+        "route": "/search", "query_chars": len(query),
+        "total_seconds": total,
+        "steps": [{"name": n, "seconds": s} for n, s in step_timings],
+    }), file=sys.stdout, flush=True)
 
 
 # ── auth ──────────────────────────────────────────────────────────────────────
@@ -181,7 +228,8 @@ def search():
         wardrobe = get_example_wardrobe()
 
     with _one_at_a_time:
-        result = run_agent(query, wardrobe)
+        result, elapsed_seconds, step_timings = _run_agent_timed(query, wardrobe)
+    _log_timing(query, elapsed_seconds, step_timings)
 
     if user_id:
         try:
@@ -189,7 +237,12 @@ def search():
         except Exception as exc:  # noqa: BLE001 — a lost history row isn't fatal
             flash(f"Search succeeded, but saving it to history failed: {exc}", "error")
 
-    session["last_result"] = {"query": query, "session": result, "saved": False}
+    session["last_result"] = {
+        "query": query,
+        "session": result,
+        "saved": False,
+        "elapsed_seconds": elapsed_seconds,
+    }
     return redirect(url_for("results"))
 
 
@@ -199,17 +252,26 @@ def results():
     if last is None:
         flash("No recent search to show.", "info")
         return redirect(url_for("home"))
-    return _render_result(last["query"], last["session"], saved=last.get("saved", False))
+    return _render_result(
+        last["query"],
+        last["session"],
+        saved=last.get("saved", False),
+        elapsed_seconds=last.get("elapsed_seconds"),
+    )
 
 
-def _render_result(query: str, result: dict, saved: bool):
+def _render_result(
+    query: str, result: dict, saved: bool, elapsed_seconds: Optional[float] = None
+):
     if result.get("error"):
         return render_template("results.html", active_page="home", query=query,
-                                error=result["error"], narrow_page=True)
+                                error=result["error"], elapsed_seconds=elapsed_seconds,
+                                narrow_page=True)
     return render_template(
         "results.html", active_page="home", query=query, error=None,
         item=result["selected_item"], outfit_suggestion=result["outfit_suggestion"],
-        fit_card=result["fit_card"], saved=saved, narrow_page=True,
+        fit_card=result["fit_card"], saved=saved, elapsed_seconds=elapsed_seconds,
+        narrow_page=True,
     )
 
 
