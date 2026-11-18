@@ -1,0 +1,146 @@
+2026-11-18T05:12:04.590732554Z  10.238.26.252 - - [18/Nov/2026:05:12:04 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:09.590973905Z  10.238.26.252 - - [18/Nov/2026:05:12:09 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:10.40870229Z  10.238.26.252 - - [18/Nov/2026:05:12:10 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:11.363308047Z  [5] parse query (model)
+2026-11-18T05:12:11.363334388Z        in:  vintage graphic tee under $30
+2026-11-18T05:12:11.363342178Z        out: description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:12:16.108374735Z  [6] search_listings (via MCP)
+2026-11-18T05:12:16.108392435Z        in:  description='vintage graphic tee', size=None, max_price=30.0
+2026-11-18T05:12:16.108396295Z        out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+2026-11-18T05:12:16.108400535Z        →    branch: results found -> selected_item = first result (id lst_002)
+2026-11-18T05:12:16.108693091Z  [7] suggest_outfit (model)
+2026-11-18T05:12:16.108709172Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); wardrobe: 10 items
+2026-11-18T05:12:16.108714392Z        out: **Outfit 1: Streetwear Contrast** Pair the Y2K Baby Tee with your **Baggy straight-leg jeans, dark wash**. Add…
+2026-11-18T05:12:16.108905245Z  [8] create_fit_card (model)
+2026-11-18T05:12:16.108914756Z        in:  item id lst_002 (Y2K Baby Tee — Butterfly Print, $18); outfit: 724 chars
+2026-11-18T05:12:16.108920146Z        out: Found the ultimate Y2K butterfly baby tee and honestly I might have to keep her 😭 Grabbed it for just $18 on d…
+2026-11-18T05:12:16.108925616Z        →    done: fit card tagged and stored in session
+2026-11-18T05:12:16.108933686Z  {"request_id": 2, "route": "/ask", "status": "ok", "duration_ms": 4746.2, "waited_for_lock": false, "model_calls": 0, "tokens": 0, "query_chars": 29}
+2026-11-18T05:12:16.109523728Z  127.0.0.1 - - [18/Nov/2026:05:12:16 +0000] "POST /ask HTTP/1.1" 200 7205 "-" "curl/8.11.0"
+2026-11-18T05:12:16.110186131Z  10.238.26.252 - - [18/Nov/2026:05:12:16 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:17.682664822Z  [9] parse query (model)
+2026-11-18T05:12:17.682683092Z        in:  90s track jacket in size M
+2026-11-18T05:12:17.682687172Z        out: description='90s track jacket', size='M', max_price=None
+2026-11-18T05:12:21.819048994Z  [10] search_listings (via MCP)
+2026-11-18T05:12:21.819081824Z        in:  description='90s track jacket', size='M', max_price=None
+2026-11-18T05:12:21.819087865Z        out: 4 items: 90s Track Jacket — Navy/White Stripe, 90s Leather Bomber — Black, 90s Silk Slip Dress — Floral, Midi Length … +1 more
+2026-11-18T05:12:21.819092855Z        →    branch: results found -> selected_item = first result (id lst_004)
+2026-11-18T05:12:22.58932585Z  [11] suggest_outfit (model)
+2026-11-18T05:12:22.58934437Z        in:  item id lst_004 (90s Track Jacket — Navy/White Stripe, $45); wardrobe: 10 items
+2026-11-18T05:12:22.58934895Z        out: **Outfit 1: 90s Streetwear** Pair the 90s track jacket with the white ribbed tank top tucked into the baggy st…
+2026-11-18T05:12:23.585203596Z  [12] create_fit_card (model)
+2026-11-18T05:12:23.585222256Z        in:  item id lst_004 (90s Track Jacket — Navy/White Stripe, $45); outfit: 433 chars
+2026-11-18T05:12:23.585226136Z        out: Obsessed with this navy and white 90s track jacket for that ultimate effortless streetwear vibe. It’s an absol…
+2026-11-18T05:12:23.585229656Z        →    done: fit card tagged and stored in session
+2026-11-18T05:12:23.585232897Z  {"request_id": 3, "route": "/ask", "status": "ok", "duration_ms": 7250.8, "waited_for_lock": false, "model_calls": 3, "tokens": 822, "query_chars": 26}
+2026-11-18T05:12:23.585801498Z  127.0.0.1 - - [18/Nov/2026:05:12:23 +0000] "POST /ask HTTP/1.1" 200 4618 "-" "curl/8.11.0"
+2026-11-18T05:12:23.586540002Z  10.238.26.252 - - [18/Nov/2026:05:12:23 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:24.784841072Z  [13] parse query (model)
+2026-11-18T05:12:24.784867663Z        in:  platform sneakers size 8
+2026-11-18T05:12:24.784873223Z        out: description='platform sneakers', size='US 8', max_price=None
+2026-11-18T05:12:28.812630872Z  [14] search_listings (via MCP)
+2026-11-18T05:12:28.812658562Z        in:  description='platform sneakers', size='US 8', max_price=None
+2026-11-18T05:12:28.812662412Z        out: 1 items: Platform Sneakers — White Chunky Sole
+2026-11-18T05:12:28.812664942Z        →    branch: results found -> selected_item = first result (id lst_019)
+2026-11-18T05:12:29.635560576Z  [15] suggest_outfit (model)
+2026-11-18T05:12:29.635579506Z        in:  item id lst_019 (Platform Sneakers — White Chunky Sole, $48); wardrobe: 10 items
+2026-11-18T05:12:29.635583076Z        out: **Outfit 1: Off-Duty Streetwear** Pair the Platform Sneakers with the baggy straight-leg jeans, white ribbed t…
+2026-11-18T05:12:31.114340948Z  [16] create_fit_card (model)
+2026-11-18T05:12:31.114390829Z        in:  item id lst_019 (Platform Sneakers — White Chunky Sole, $48); outfit: 463 chars
+2026-11-18T05:12:31.114397909Z        out: Need that effortless Y2K downtown look? 👟 These chunky platform sneakers are giving major off-duty model vibes…
+2026-11-18T05:12:31.114401219Z        →    done: fit card tagged and stored in session
+2026-11-18T05:12:31.114671515Z  {"request_id": 4, "route": "/ask", "status": "ok", "duration_ms": 7093.4, "waited_for_lock": false, "model_calls": 3, "tokens": 795, "query_chars": 24}
+2026-11-18T05:12:31.117115892Z  127.0.0.1 - - [18/Nov/2026:05:12:31 +0000] "POST /ask HTTP/1.1" 200 3314 "-" "curl/8.11.0"
+2026-11-18T05:12:31.119854137Z  10.238.26.252 - - [18/Nov/2026:05:12:31 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:31.120627552Z  10.238.26.252 - - [18/Nov/2026:05:12:31 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:32.420529424Z  [17] parse query (model)
+2026-11-18T05:12:32.420549254Z        in:  hey, looking for a cottagecore crochet top in S/M, $25 or less please
+2026-11-18T05:12:32.420552774Z        out: description='cottagecore crochet top', size='S/M', max_price=25.0
+2026-11-18T05:12:36.409613965Z  [18] search_listings (via MCP)
+2026-11-18T05:12:36.409637075Z        in:  description='cottagecore crochet top', size='S/M', max_price=25.0
+2026-11-18T05:12:36.409640115Z        out: 3 items: Crochet Halter Top — Cream, Y2K Baby Tee — Butterfly Print, Mesh Long-Sleeve Top — Black
+2026-11-18T05:12:36.409642226Z        →    branch: results found -> selected_item = first result (id lst_023)
+2026-11-18T05:12:37.398613997Z  [19] suggest_outfit (model)
+2026-11-18T05:12:37.398633947Z        in:  item id lst_023 (Crochet Halter Top — Cream, $22); wardrobe: 10 items
+2026-11-18T05:12:37.398637947Z        out: **Outfit 1: Boho Streetwear** Pair the Crochet Halter Top with the baggy straight-leg jeans. Layer the vintage…
+2026-11-18T05:12:38.218022769Z  [20] create_fit_card (model)
+2026-11-18T05:12:38.21804014Z        in:  item id lst_023 (Crochet Halter Top — Cream, $22); outfit: 621 chars
+2026-11-18T05:12:38.21804363Z        out: obsessed with this cream crochet halter top I just scored on depop for only $22! 🧶✨ honestly the ultimate boho…
+2026-11-18T05:12:38.21804613Z        →    done: fit card tagged and stored in session
+2026-11-18T05:12:38.21804876Z  {"request_id": 5, "route": "/ask", "status": "ok", "duration_ms": 6803.3, "waited_for_lock": false, "model_calls": 3, "tokens": 876, "query_chars": 69}
+2026-11-18T05:12:38.21852355Z  127.0.0.1 - - [18/Nov/2026:05:12:38 +0000] "POST /ask HTTP/1.1" 200 4295 "-" "curl/8.11.0"
+2026-11-18T05:12:38.219155762Z  10.238.26.252 - - [18/Nov/2026:05:12:38 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:39.711233239Z  [21] parse query (model)
+2026-11-18T05:12:39.711252839Z        in:  denim jacket under $50
+2026-11-18T05:12:39.71125684Z        out: description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:12:44.10995518Z  [22] search_listings (via MCP)
+2026-11-18T05:12:44.109980361Z        in:  description='denim jacket', size=None, max_price=50.0
+2026-11-18T05:12:44.109984511Z        out: 7 items: Denim Jacket — Light Wash, Cropped, Vintage Levi's 501 Jeans — Medium Wash, 90s Track Jacket — Navy/White Stripe … +4 more
+2026-11-18T05:12:44.109990711Z        →    branch: results found -> selected_item = first result (id lst_007)
+2026-11-18T05:12:45.1322602Z  [23] suggest_outfit (model)
+2026-11-18T05:12:45.13227901Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); wardrobe: 10 items
+2026-11-18T05:12:45.13228513Z        out: **Outfit 1: Contrast Streetwear** Pair the light wash denim jacket with the white ribbed tank top tucked into …
+2026-11-18T05:12:46.237441406Z  [24] create_fit_card (model)
+2026-11-18T05:12:46.237461597Z        in:  item id lst_007 (Denim Jacket — Light Wash, Cropped, $42); outfit: 560 chars
+2026-11-18T05:12:46.237466947Z        out: Obsessed with the wash on this cropped denim jacket! It’s giving major 90s streetwear vibes whether you style …
+2026-11-18T05:12:46.237472637Z        →    done: fit card tagged and stored in session
+2026-11-18T05:12:46.237479927Z  {"request_id": 6, "route": "/ask", "status": "ok", "duration_ms": 7756.6, "waited_for_lock": false, "model_calls": 3, "tokens": 857, "query_chars": 22}
+2026-11-18T05:12:46.237969007Z  127.0.0.1 - - [18/Nov/2026:05:12:46 +0000] "POST /ask HTTP/1.1" 200 5876 "-" "curl/8.11.0"
+2026-11-18T05:12:46.23861882Z  10.238.26.252 - - [18/Nov/2026:05:12:46 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:46.239026948Z  10.238.26.252 - - [18/Nov/2026:05:12:46 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:46.239516787Z  10.238.26.252 - - [18/Nov/2026:05:12:46 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:47.070150019Z  [25] parse query (model)
+2026-11-18T05:12:47.070171349Z        in:  designer ballgown size XXS under $5
+2026-11-18T05:12:47.07017669Z        out: description='designer ballgown', size='XXS', max_price=5.0
+2026-11-18T05:12:51.615424851Z  [26] search_listings (via MCP)
+2026-11-18T05:12:51.615459521Z        in:  description='designer ballgown', size='XXS', max_price=5.0
+2026-11-18T05:12:51.615465502Z        out: [] (empty)
+2026-11-18T05:12:51.615502462Z        →    branch: empty -> set session['error'], stop before suggest_outfit
+2026-11-18T05:12:51.615531273Z  {"request_id": 7, "route": "/ask", "status": "no_match", "duration_ms": 4985.4, "waited_for_lock": false, "model_calls": 1, "tokens": 125, "query_chars": 35}
+2026-11-18T05:12:51.616048113Z  127.0.0.1 - - [18/Nov/2026:05:12:51 +0000] "POST /ask HTTP/1.1" 200 2008 "-" "curl/8.11.0"
+2026-11-18T05:12:51.700363637Z  10.238.26.252 - - [18/Nov/2026:05:12:51 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:52.316180645Z  [27] parse query (model)
+2026-11-18T05:12:52.316202375Z        in:  a wetsuit for surfing
+2026-11-18T05:12:52.316206635Z        out: description='wetsuit for surfing', size=None, max_price=None
+2026-11-18T05:12:56.319044848Z  [28] search_listings (via MCP)
+2026-11-18T05:12:56.319074518Z        in:  description='wetsuit for surfing', size=None, max_price=None
+2026-11-18T05:12:56.319081398Z        out: [] (empty)
+2026-11-18T05:12:56.319084509Z        →    branch: empty -> set session['error'], stop before suggest_outfit
+2026-11-18T05:12:56.319088138Z  {"request_id": 8, "route": "/ask", "status": "no_match", "duration_ms": 4472.5, "waited_for_lock": false, "model_calls": 1, "tokens": 125, "query_chars": 21}
+2026-11-18T05:12:56.319546158Z  127.0.0.1 - - [18/Nov/2026:05:12:56 +0000] "POST /ask HTTP/1.1" 200 1935 "-" "curl/8.11.0"
+2026-11-18T05:12:56.402637648Z  10.238.26.252 - - [18/Nov/2026:05:12:56 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:12:57.039725695Z  [29] parse query (model)
+2026-11-18T05:12:57.039745636Z        in:  looking for a kimono robe
+2026-11-18T05:12:57.039749685Z        out: description='kimono robe', size=None, max_price=None
+2026-11-18T05:13:01.306757644Z  [30] search_listings (via MCP)
+2026-11-18T05:13:01.306788214Z        in:  description='kimono robe', size=None, max_price=None
+2026-11-18T05:13:01.306792064Z        out: [] (empty)
+2026-11-18T05:13:01.306794864Z        →    branch: empty -> set session['error'], stop before suggest_outfit
+2026-11-18T05:13:01.306797755Z  {"request_id": 9, "route": "/ask", "status": "no_match", "duration_ms": 4767.4, "waited_for_lock": false, "model_calls": 1, "tokens": 118, "query_chars": 25}
+2026-11-18T05:13:01.307386926Z  127.0.0.1 - - [18/Nov/2026:05:13:01 +0000] "POST /ask HTTP/1.1" 200 1923 "-" "curl/8.11.0"
+2026-11-18T05:13:01.308180592Z  10.238.26.252 - - [18/Nov/2026:05:13:01 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:13:01.530856818Z    [rate limit] 15 requests used this minute. Waiting 15s. This is normal.
+2026-11-18T05:13:15.488544696Z  [2026-11-18 05:13:15 +0000] [58] [INFO] Handling signal: term
+2026-11-18T05:13:17.237550301Z  [31] parse query (model)
+2026-11-18T05:13:17.237570081Z        in:  graphic tee under $5
+2026-11-18T05:13:17.237573981Z        out: description='graphic tee', size=None, max_price=5.0
+2026-11-18T05:13:20.951396991Z  [0;33m[1m==> [0m[1mInstance srv-dbuj2duk1f9s73adsst0-r7bmt restarted[0m
+2026-11-18T05:13:27.055109168Z  [32m[1m==>(B[m [1mRunning 'gunicorn serve:app'(B[m
+2026-11-18T05:13:33.25977626Z  [2026-11-18 05:13:33 +0000] [39] [INFO] Starting gunicorn 23.0.0
+2026-11-18T05:13:33.260062236Z  [2026-11-18 05:13:33 +0000] [39] [INFO] Listening at: http://0.0.0.0:10000 (39)
+2026-11-18T05:13:33.260084426Z  [2026-11-18 05:13:33 +0000] [39] [INFO] Using worker: sync
+2026-11-18T05:13:33.264465192Z  [2026-11-18 05:13:33 +0000] [40] [INFO] Booting worker with pid: 40
+2026-11-18T05:13:35.423048916Z  10.238.26.252 - - [18/Nov/2026:05:13:35 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:13:35.42726555Z  10.238.26.252 - - [18/Nov/2026:05:13:35 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:13:40.408520383Z  10.238.26.252 - - [18/Nov/2026:05:13:40 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:13:40.42653353Z  10.238.26.252 - - [18/Nov/2026:05:13:40 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:13:45.427678357Z  10.238.26.252 - - [18/Nov/2026:05:13:45 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:13:50.425749293Z  10.238.26.252 - - [18/Nov/2026:05:13:50 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:13:55.426323753Z  10.238.26.252 - - [18/Nov/2026:05:13:55 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:14:00.426630436Z  10.238.26.252 - - [18/Nov/2026:05:14:00 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:14:05.426625022Z  10.238.26.252 - - [18/Nov/2026:05:14:05 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:14:10.408513325Z  10.238.26.252 - - [18/Nov/2026:05:14:10 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:14:10.426034631Z  10.238.26.252 - - [18/Nov/2026:05:14:10 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:14:15.425890589Z  10.238.26.252 - - [18/Nov/2026:05:14:15 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:14:20.42640909Z  10.238.26.252 - - [18/Nov/2026:05:14:20 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
+2026-11-18T05:14:25.426738129Z  10.238.26.252 - - [18/Nov/2026:05:14:25 +0000] "GET /health HTTP/1.1" 200 36 "-" "Render/1.0"
