@@ -144,3 +144,54 @@ and `session["fit_card"]` is `None`. Both are checked with a regex.
      A number you missed stays where it is, gets diagnosed, and gets a fix
      attempted. That's where the points are.
      ───────────────────────────────────────────────────────────────────────── -->
+
+---
+
+# Unit 9 — deployed, instrumented service
+
+These three are new, written against `serve.py` running as a real deployment
+on Render rather than against the CLI. No template this time — chosen,
+worded and targeted from scratch, against the service as actually deployed.
+
+## 6. Cold start
+
+After the free-tier dyno has been idle 20+ minutes (Render spins it down),
+the first `GET /health` afterward returns `{"status": "ok"}` within 60
+seconds — in 5 of 5 tries.
+
+**Why this target:** Render's own docs describe free-tier cold start as "a
+few seconds to about a minute." 60s gives real headroom above that without
+being a target I can't miss — a dyno that takes 90s to wake up is a problem
+worth knowing about, not noise to average away.
+
+## 7. Concurrency is really serialized
+
+Firing two `/ask` requests at the same moment, each with a different query:
+in 5 of 5 trials, both responses come back correct and not swapped (each
+response's fit card is for its own query's item, not the other request's),
+and exactly one of the two logged lines for that pair has
+`waited_for_lock: true`.
+
+**Why this target:** `serve.py` claims one-at-a-time processing via a single
+lock. Checking only "neither request crashed" could pass even if the lock
+did nothing and the two requests happened not to collide. Requiring exactly
+one `waited_for_lock: true` per pair is the one thing that's false if the
+lock isn't doing real work.
+
+## 8. Every request logs itself honestly
+
+Across 20 requests — 5 matching queries, 5 impossible queries, 5 with a
+missing `query` field, and 5 with a malformed `wardrobe` that is missing
+required item fields (`tools.py::suggest_outfit` indexes `w['name']`,
+`w['category']`, `w['colors']`, `w['style_tags']` directly, so a client
+wardrobe missing any of those raises an uncaught exception, caught by
+`serve.py`'s `except Exception` as a 500) — exactly 20 JSON log lines
+appear, each parses as valid JSON, and each one's `status` field matches
+what actually happened (`ok` / `no_match` / `bad_request` / `error`) — 20
+of 20.
+
+**Why this target:** completeness (no request goes unlogged, none logs
+twice) and correctness (the label is true, not just present) are both
+things I'd want to know are broken, and neither implies the other — a
+server that logs every request with the wrong status would still pass a
+completeness-only check.
