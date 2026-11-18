@@ -526,4 +526,87 @@ No criterion is missed in the after run, but that does not mean nothing is left.
 
 ---
 
+## Unit 9 — Deployed & Instrumented Service
+
+**Shape chosen:** deploy and instrument. `serve.py` (provided, previously a
+stub with no logging) is now wired up and running live.
+
+**Live deployment:** [https://fitfindr-wyt6.onrender.com](https://fitfindr-wyt6.onrender.com)
+(Render free tier, `render.yaml` Blueprint, `GEMINI_API_KEY` set as a Render
+secret, never committed). `GET /health`, `POST /ask` — see `serve.py` for the
+request/response shape.
+
+**Instrumentation added (`serve.py`):** one JSON line to stdout per `/ask`
+request — a per-process `request_id`, `duration_ms`, `status`
+(`ok`/`no_match`/`bad_request`/`error`), `waited_for_lock`, and that
+request's own model-call and token cost. `generate.py`'s call/token counters
+are cumulative for the whole process (the CLI only ever serves one query per
+process, so nobody building it noticed), so each request snapshots them
+before and after `run_agent()` and logs the delta — verified locally with a
+cache-disabled run logging `model_calls: 3, tokens: 991` for a real query,
+and cached queries correctly logging `model_calls: 0`.
+
+### Criteria (no template — criteria 6–8 in `criteria.md`)
+
+| # | Criterion | Target | Result |
+|---|---|---|---|
+| 6 | Cold `/health` responds within 60s after 20+ min idle | 5 of 5 | not yet run |
+| 7 | Two concurrent `/ask` calls: correct, non-swapped results, and exactly one logs `waited_for_lock: true` | 5 of 5 | **MET (5/5)** |
+| 8 | 20 requests (5 each: match, impossible, missing-query, malformed-wardrobe) each produce one log line with a correct `status` | 20 of 20 | **MISSED (8/20) → fixed → MET (20/20)** |
+
+### Criterion 8 — before, diagnosis, fix, after
+
+**Before (8 of 20, MISSED):** firing the 20-request test tripped
+`generate.py`'s own rate limiter mid-run (`[rate limit] 15 requests used
+this minute. Waiting 15s.`). `gunicorn serve:app` with no `--workers`/
+`--threads` runs **one thread total**, so that 15s sleep also blocked
+Render's own `/health` poll (observed in the logs at a ~5s cadence). After
+a few missed checks, Render force-restarted the instance mid-request,
+killing one in-flight request and instantly 502ing the 11 requests queued
+behind it — before they ever reached Flask, so they produced **zero**
+app-level log lines. Full trace and scorecard:
+`results/unit9_criterion8_before.md` / `..._before_raw.txt`.
+
+**Diagnosis:** not a logging bug — a concurrency-model mismatch. The
+single-lock design in `serve.py` already accounts for a second *user*
+request waiting; it didn't account for the host's own health check also
+needing a thread.
+
+**Fix:** `render.yaml`'s `startCommand` changed to `gunicorn --worker-class
+gthread --threads 4 serve:app`. `gthread` is real OS threads, not an event
+loop, so `mcp_client.call_tool`'s `asyncio.run()` still works per-thread —
+unlike `gevent`/`eventlet`, which `serve.py`'s own docstring already rules
+out for exactly that reason. `/health` can now be answered on a free thread
+while `/ask` is blocked on another; the Python-level `_one_at_a_time` lock
+still serializes actual agent runs across those threads, so the one-run-
+at-a-time guarantee is unchanged (confirmed by criterion 7, below, run
+*after* this fix).
+
+**After (20 of 20, MET):** same 20 requests, same order, re-run against the
+redeployed service. All 20 produced a structured log line with the correct
+`status`. `request_id: 2` took **44991.1 ms** — a real rate-limit pacing
+wait, the exact condition that killed the instance before — and the
+service stayed up through it; no restart anywhere in the trace. Full
+trace: `results/unit9_criterion8_after.md` / `..._after_raw.txt`.
+
+### Criterion 7 — concurrency (5 of 5, MET)
+
+Five trials of two `/ask` requests fired at the same instant (different
+queries each time), against the already-fixed deployment. Every trial: both
+responses carried the correct item (never swapped), and exactly one of the
+two log lines showed `waited_for_lock: true` — the lock is doing real work
+under genuine concurrent load, not just failing to crash. All ten calls hit
+the response cache (`model_calls: 0`), so this measures the lock and the
+MCP round trip, not fresh model latency — noted as a limit in
+`results/unit9_criterion7.md`.
+
+### What's left
+
+Criterion 6 (cold start) needs a genuine ≥20-minute idle gap before each of
+5 tries, which the ongoing criterion-7/8 testing traffic keeps resetting.
+Not yet run — see `results/` for whichever of `unit9_criterion6_*` exists
+by the time this is read; if none exists, it hasn't run yet.
+
+---
+
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
