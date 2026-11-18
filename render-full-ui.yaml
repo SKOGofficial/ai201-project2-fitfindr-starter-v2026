@@ -1,0 +1,21 @@
+# Separate Render Blueprint for the bonus full UI.
+# Create this Blueprint from feature/full-ui and set the prompted secrets in Render.
+services:
+  - type: web
+    name: fitfindr-full-ui
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class gthread --threads 4 webapp:app
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
