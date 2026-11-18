@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Log in — FitFindr{% endblock %}
 {% block content %}
-<h1>Log in</h1>
-<p class="sub">Save your searches, keep a wardrobe, favorite your fit cards.</p>
+<div class="page-head">
+  <h1>Log in</h1>
+  <p class="sub">Save your searches, keep a wardrobe, favorite your fit cards.</p>
+</div>
 
-<div class="card">
+<div class="card pad" style="margin-bottom:1.1rem;">
   <h2>Already have an account</h2>
   <form class="stack" method="post" action="{{ url_for('login') }}">
     <div>
@@ -19,7 +21,7 @@
   </form>
 </div>
 
-<div class="card">
+<div class="card pad">
   <h2>New here</h2>
   <form class="stack" method="post" action="{{ url_for('signup') }}">
     <div>

@@ -1,31 +1,39 @@
 {% extends "base.html" %}
+{% from "_macros.html" import category_art %}
 {% block title %}Wardrobe — FitFindr{% endblock %}
 {% block content %}
-<h1>Your wardrobe</h1>
-<p class="sub">Pieces FitFindr will suggest outfits from. Empty is fine — you'll get general styling advice instead.</p>
+<div class="page-head">
+  <h1>Your wardrobe</h1>
+  <p class="sub">Pieces FitFindr will suggest outfits from. Empty is fine — you'll get general styling advice instead.</p>
+</div>
 
 {% if items %}
-  {% for it in items %}
-    <div class="card">
-      <div class="row">
-        <strong>{{ it.name }}</strong>
-        <form method="post" action="{{ url_for('delete_wardrobe_item_route', item_id=it.id) }}">
-          <button type="submit" class="secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Remove</button>
-        </form>
+  <div class="grid" style="margin-bottom:1.5rem;">
+    {% for it in items %}
+      <div class="card interactive">
+        {{ category_art(it.category) }}
+        <div class="pad">
+          <div class="row" style="align-items:flex-start;">
+            <strong>{{ it.name }}</strong>
+            <form method="post" action="{{ url_for('delete_wardrobe_item_route', item_id=it.id) }}">
+              <button type="submit" class="secondary sm">Remove</button>
+            </form>
+          </div>
+          <p class="muted" style="margin-top:0.4rem;">
+            {{ it.category }}
+            {% if it.colors %} · {{ it.colors | join(', ') }}{% endif %}
+            {% if it.style_tags %} · {{ it.style_tags | join(', ') }}{% endif %}
+          </p>
+          {% if it.notes %}<p class="muted" style="margin-top:0.2rem;">{{ it.notes }}</p>{% endif %}
+        </div>
       </div>
-      <p class="muted" style="margin-top:0.3rem;">
-        {{ it.category }}
-        {% if it.colors %} · {{ it.colors | join(', ') }}{% endif %}
-        {% if it.style_tags %} · {{ it.style_tags | join(', ') }}{% endif %}
-      </p>
-      {% if it.notes %}<p class="muted" style="margin-top:0.2rem;">{{ it.notes }}</p>{% endif %}
-    </div>
-  {% endfor %}
+    {% endfor %}
+  </div>
 {% else %}
-  <p class="empty-state">Your wardrobe is empty.</p>
+  <p class="empty-state" style="margin-bottom:1.5rem;">Your wardrobe is empty.</p>
 {% endif %}
 
-<div class="card">
+<div class="card pad" style="max-width:480px;">
   <h2>Add an item</h2>
   <form class="stack" method="post" action="{{ url_for('add_wardrobe_item_route') }}">
     <div>

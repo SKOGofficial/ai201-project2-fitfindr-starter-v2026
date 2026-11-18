@@ -22,6 +22,7 @@ there.
 import os
 import secrets
 import threading
+import time
 
 import config  # noqa: F401 — loads .env, fixes Windows console encoding
 
@@ -47,6 +48,44 @@ app.secret_key = _secret
 
 _one_at_a_time = threading.Lock()
 
+# ── search cooldown ───────────────────────────────────────────────────────────
+# Global, not per-user: generate.py's REQUESTS_PER_MINUTE pacing already
+# protects the Gemini quota, but it does so by making a queued request wait
+# silently — from the browser that just looks like the page is slow. This
+# rejects a too-soon search immediately, with a message, before it ever
+# touches the model or the one-at-a-time lock. That second part matters for
+# Render specifically: this process has one lock guarding one agent run at a
+# time, and each run spawns an MCP subprocess — a burst of searches (several
+# people hitting a shared demo link at once, or one person double-clicking)
+# would otherwise queue up holding threads and spawning subprocesses rather
+# than failing fast.
+#
+# 8 seconds, not something stricter: a real search already takes ~7-9s (three
+# model calls plus an MCP round trip), so this mostly closes the gap between
+# "click again out of impatience" and "the previous search would have
+# finished anyway" — it isn't meant to make normal use feel throttled.
+SEARCH_COOLDOWN_SECONDS = int(os.getenv("SEARCH_COOLDOWN_SECONDS", "8"))
+
+_cooldown_lock = threading.Lock()
+_last_search_started_at = 0.0
+
+
+def _seconds_until_search_allowed() -> float:
+    """0.0 if a search may start now; otherwise how many seconds to wait.
+
+    Claims the slot as a side effect when it returns 0.0, so two requests
+    that check at nearly the same instant can't both pass — only one gets
+    0.0, the other sees the time already claimed.
+    """
+    global _last_search_started_at
+    with _cooldown_lock:
+        now = time.monotonic()
+        elapsed = now - _last_search_started_at
+        if elapsed < SEARCH_COOLDOWN_SECONDS:
+            return SEARCH_COOLDOWN_SECONDS - elapsed
+        _last_search_started_at = now
+        return 0.0
+
 
 @app.context_processor
 def inject_user():
@@ -61,7 +100,7 @@ def inject_user():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html", active_page="login")
+        return render_template("login.html", active_page="login", narrow_page=True)
 
     email = (request.form.get("email") or "").strip()
     password = request.form.get("password") or ""
@@ -102,6 +141,11 @@ def logout():
     return redirect(url_for("home"))
 
 
+@app.get("/settings")
+def settings():
+    return render_template("settings.html", active_page="settings", narrow_page=True)
+
+
 # ── search ────────────────────────────────────────────────────────────────────
 
 @app.get("/")
@@ -109,7 +153,7 @@ def home():
     wardrobe_count = None
     if auth.current_user_id():
         wardrobe_count = len(db.list_wardrobe_items(auth.current_user_id()))
-    return render_template("home.html", active_page="home", wardrobe_count=wardrobe_count)
+    return render_template("home.html", active_page="home", wardrobe_count=wardrobe_count, narrow_page=True)
 
 
 @app.post("/search")
@@ -117,6 +161,15 @@ def search():
     query = (request.form.get("query") or "").strip()
     if not query:
         flash("Enter something to search for.", "error")
+        return redirect(url_for("home"))
+
+    wait = _seconds_until_search_allowed()
+    if wait > 0:
+        flash(
+            f"Please wait {wait:.0f}s before searching again — this protects "
+            "the shared model quota and the server's single search slot.",
+            "error",
+        )
         return redirect(url_for("home"))
 
     user_id = auth.current_user_id()
@@ -151,11 +204,12 @@ def results():
 
 def _render_result(query: str, result: dict, saved: bool):
     if result.get("error"):
-        return render_template("results.html", active_page="home", query=query, error=result["error"])
+        return render_template("results.html", active_page="home", query=query,
+                                error=result["error"], narrow_page=True)
     return render_template(
         "results.html", active_page="home", query=query, error=None,
         item=result["selected_item"], outfit_suggestion=result["outfit_suggestion"],
-        fit_card=result["fit_card"], saved=saved,
+        fit_card=result["fit_card"], saved=saved, narrow_page=True,
     )
 
 

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Settings — FitFindr{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Settings</h1>
+  <p class="sub">Saved on this device — no account needed.</p>
+</div>
+
+<div class="card pad" style="margin-bottom:1.1rem;">
+  <h2>Appearance</h2>
+  <div class="row" style="gap:0.6rem;">
+    <div class="theme-option" data-theme-choice="light" style="flex:1;">☀️ Light</div>
+    <div class="theme-option" data-theme-choice="dark" style="flex:1;">🌙 Dark</div>
+    <div class="theme-option" data-theme-choice="system" style="flex:1;">🖥️ System</div>
+  </div>
+</div>
+
+<div class="card pad">
+  <h2>Accent color</h2>
+  <div class="row" style="justify-content:flex-start; gap:0.9rem;">
+    <div class="accent-swatch" data-accent-choice="indigo" style="background:#6366f1;"></div>
+    <div class="accent-swatch" data-accent-choice="emerald" style="background:#10b981;"></div>
+    <div class="accent-swatch" data-accent-choice="rose" style="background:#f43f5e;"></div>
+    <div class="accent-swatch" data-accent-choice="amber" style="background:#f59e0b;"></div>
+    <div class="accent-swatch" data-accent-choice="blue" style="background:#3b82f6;"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+
+    function currentTheme() { return localStorage.getItem('ff-theme') || 'system'; }
+    function currentAccent() { return localStorage.getItem('ff-accent') || 'indigo'; }
+
+    function paintActive() {
+      var theme = currentTheme(), accent = currentAccent();
+      document.querySelectorAll('[data-theme-choice]').forEach(function (el) {
+        el.classList.toggle('active', el.dataset.themeChoice === theme);
+      });
+      document.querySelectorAll('[data-accent-choice]').forEach(function (el) {
+        el.classList.toggle('active', el.dataset.accentChoice === accent);
+      });
+    }
+
+    document.querySelectorAll('[data-theme-choice]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var theme = el.dataset.themeChoice;
+        localStorage.setItem('ff-theme', theme);
+        if (theme === 'system') root.removeAttribute('data-theme');
+        else root.setAttribute('data-theme', theme);
+        paintActive();
+      });
+    });
+
+    document.querySelectorAll('[data-accent-choice]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var accent = el.dataset.accentChoice;
+        localStorage.setItem('ff-accent', accent);
+        root.setAttribute('data-accent', accent);
+        paintActive();
+      });
+    });
+
+    paintActive();
+  })();
+</script>
+{% endblock %}

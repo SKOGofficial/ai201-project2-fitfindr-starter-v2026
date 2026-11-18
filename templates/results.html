@@ -1,37 +1,45 @@
 {% extends "base.html" %}
+{% from "_macros.html" import category_art %}
 {% block title %}Results — FitFindr{% endblock %}
 {% block content %}
-<h1>Results</h1>
-<p class="sub">&ldquo;{{ query }}&rdquo;</p>
+<div class="page-head">
+  <h1>Results</h1>
+  <p class="sub">&ldquo;{{ query }}&rdquo;</p>
+</div>
 
 {% if error %}
-  <div class="card error-card">
-    <h2>No match</h2>
-    <p>{{ error }}</p>
+  {% set is_no_match = error.startswith('(no match)') %}
+  <div class="card pad {{ 'suggestion-card' if is_no_match else 'error-card' }}">
+    <h2>{{ '🔍 Try a different search' if is_no_match else 'Something went wrong' }}</h2>
+    <p>{{ error[11:].strip() if is_no_match else error }}</p>
   </div>
 {% else %}
-  <div class="card">
-    <h2>Found</h2>
-    <p>{{ item.title }} — ${{ item.price }} on {{ item.platform }}</p>
+  <div class="card" style="margin-bottom:1rem;">
+    {{ category_art(item.category) }}
+    <div class="pad">
+      <h2>Found</h2>
+      <p style="font-weight:600;">{{ item.title }}</p>
+      <p class="muted" style="margin-top:0.25rem;">${{ item.price }} on {{ item.platform }} <span class="tag" style="margin-left:0.4rem;">{{ item.category }}</span></p>
+    </div>
   </div>
-  <div class="card">
+  <div class="card pad" style="margin-bottom:1rem;">
     <h2>Outfit</h2>
     <p>{{ outfit_suggestion }}</p>
   </div>
-  <div class="card">
+  <div class="card pad" style="margin-bottom:1rem;">
     <h2>Fit card</h2>
     <p>{{ fit_card }}</p>
     {% if saved %}
-      <span class="tag" style="margin-top:0.5rem; display:inline-block;">Saved to favorites</span>
+      <span class="tag" style="margin-top:0.75rem; display:inline-flex;">✓ Saved to favorites</span>
     {% elif user_id %}
-      <form method="post" action="{{ url_for('favorite_this') }}" style="margin-top:0.75rem;">
-        <button type="submit" class="secondary">Save to favorites</button>
+      <form method="post" action="{{ url_for('favorite_this') }}" style="margin-top:0.9rem;">
+        <button type="submit" class="secondary">☆ Save to favorites</button>
       </form>
     {% else %}
-      <p class="muted" style="margin-top:0.75rem;"><a href="{{ url_for('login') }}">Log in</a> to save this to favorites.</p>
+      <p class="muted" style="margin-top:0.9rem;"><a href="{{ url_for('login') }}">Log in</a> to save this to favorites.</p>
     {% endif %}
   </div>
 {% endif %}
 
-<a href="{{ url_for('home') }}" class="btn secondary">Search again</a>
+<a href="{{ url_for('home') }}" class="btn secondary">← Search again</a>
 {% endblock %}
