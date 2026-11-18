@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Favorites — FitFindr{% endblock %}
+{% block content %}
+<h1>Favorites</h1>
+<p class="sub">Fit cards you've saved.</p>
+
+{% if favorites %}
+  {% for f in favorites %}
+    <div class="card">
+      <div class="row">
+        <h2 style="margin:0;">{{ f.item.title }} — ${{ f.item.price }}</h2>
+        <form method="post" action="{{ url_for('remove_favorite_route', favorite_id=f.id) }}">
+          <button type="submit" class="secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Remove</button>
+        </form>
+      </div>
+      <p style="margin-top:0.5rem;">{{ f.fit_card }}</p>
+    </div>
+  {% endfor %}
+{% else %}
+  <p class="empty-state">No favorites yet. Find something and save its fit card.</p>
+{% endif %}
+{% endblock %}

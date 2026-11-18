@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}FitFindr{% endblock %}</title>
+<style>
+  :root {
+    --bg: #faf8f5;
+    --card: #ffffff;
+    --text: #1c1917;
+    --muted: #78716c;
+    --border: #e7e2dc;
+    --accent: #b45309;
+    --accent-text: #ffffff;
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --error-text: #991b1b;
+    --success-bg: #f0fdf4;
+    --success-border: #bbf7d0;
+    --success-text: #166534;
+    --tag-bg: #f5f0e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1917;
+      --card: #292524;
+      --text: #f5f5f4;
+      --muted: #a8a29e;
+      --border: #44403c;
+      --accent: #f59e0b;
+      --accent-text: #1c1917;
+      --error-bg: #3f1d1d;
+      --error-border: #7f1d1d;
+      --error-text: #fca5a5;
+      --success-bg: #14532d;
+      --success-border: #166534;
+      --success-text: #bbf7d0;
+      --tag-bg: #363230;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  nav .brand { font-weight: 700; font-size: 1.1rem; color: var(--text); text-decoration: none; }
+  nav .links { display: flex; align-items: center; gap: 1.1rem; font-size: 0.9rem; flex-wrap: wrap; }
+  nav a { color: var(--muted); text-decoration: none; }
+  nav a:hover, nav a.active { color: var(--accent); }
+  nav .email { color: var(--muted); font-size: 0.8rem; }
+  main {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem 3rem;
+  }
+  .wrap { width: 100%; max-width: 640px; }
+  h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 1.5rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 0 0 0.5rem;
+  }
+  .card p { margin: 0; white-space: pre-wrap; line-height: 1.5; }
+  .card.error-card { background: var(--error-bg); border-color: var(--error-border); color: var(--error-text); }
+  .card.error-card h2 { color: var(--error-text); opacity: 0.8; }
+  form.stack { display: flex; flex-direction: column; gap: 0.75rem; }
+  label { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+  input[type="text"], input[type="email"], input[type="password"], textarea, select {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  button, .btn {
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-block;
+    text-decoration: none;
+  }
+  button.secondary, .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  button.danger { background: var(--error-text); color: #fff; }
+  button:disabled { opacity: 0.6; cursor: wait; }
+  .flash {
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  .flash.error { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
+  .flash.success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
+  .flash.info { background: var(--tag-bg); border: 1px solid var(--border); color: var(--muted); }
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+  }
+  .row { display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; }
+  .muted { color: var(--muted); font-size: 0.85rem; }
+  .empty-state { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
+  footer { max-width: 640px; margin: 0 auto; padding: 0 1rem 2rem; font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="{{ url_for('home') }}">FitFindr</a>
+  <div class="links">
+    {% if user_id %}
+      <a href="{{ url_for('home') }}" class="{{ 'active' if active_page == 'home' }}">Search</a>
+      <a href="{{ url_for('history') }}" class="{{ 'active' if active_page == 'history' }}">History</a>
+      <a href="{{ url_for('favorites') }}" class="{{ 'active' if active_page == 'favorites' }}">Favorites</a>
+      <a href="{{ url_for('profile') }}" class="{{ 'active' if active_page == 'profile' }}">Wardrobe</a>
+      <span class="email">{{ user_email }}</span>
+      <form method="post" action="{{ url_for('logout') }}" style="display:inline;">
+        <button type="submit" class="secondary" style="padding:0.3rem 0.6rem; font-size:0.85rem;">Log out</button>
+      </form>
+    {% else %}
+      <a href="{{ url_for('home') }}" class="{{ 'active' if active_page == 'home' }}">Search</a>
+      <a href="{{ url_for('login') }}" class="{{ 'active' if active_page == 'login' }}">Log in</a>
+    {% endif %}
+  </div>
+</nav>
+<main>
+  <div class="wrap">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</main>
+</body>
+</html>

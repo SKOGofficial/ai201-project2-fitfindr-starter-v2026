@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Wardrobe — FitFindr{% endblock %}
+{% block content %}
+<h1>Your wardrobe</h1>
+<p class="sub">Pieces FitFindr will suggest outfits from. Empty is fine — you'll get general styling advice instead.</p>
+
+{% if items %}
+  {% for it in items %}
+    <div class="card">
+      <div class="row">
+        <strong>{{ it.name }}</strong>
+        <form method="post" action="{{ url_for('delete_wardrobe_item_route', item_id=it.id) }}">
+          <button type="submit" class="secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Remove</button>
+        </form>
+      </div>
+      <p class="muted" style="margin-top:0.3rem;">
+        {{ it.category }}
+        {% if it.colors %} · {{ it.colors | join(', ') }}{% endif %}
+        {% if it.style_tags %} · {{ it.style_tags | join(', ') }}{% endif %}
+      </p>
+      {% if it.notes %}<p class="muted" style="margin-top:0.2rem;">{{ it.notes }}</p>{% endif %}
+    </div>
+  {% endfor %}
+{% else %}
+  <p class="empty-state">Your wardrobe is empty.</p>
+{% endif %}
+
+<div class="card">
+  <h2>Add an item</h2>
+  <form class="stack" method="post" action="{{ url_for('add_wardrobe_item_route') }}">
+    <div>
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" placeholder="Baggy straight-leg jeans, dark wash" required>
+    </div>
+    <div>
+      <label for="category">Category</label>
+      <select id="category" name="category" required>
+        <option value="tops">Tops</option>
+        <option value="bottoms">Bottoms</option>
+        <option value="outerwear">Outerwear</option>
+        <option value="shoes">Shoes</option>
+        <option value="accessories">Accessories</option>
+      </select>
+    </div>
+    <div>
+      <label for="colors">Colors (comma-separated)</label>
+      <input type="text" id="colors" name="colors" placeholder="dark blue, indigo">
+    </div>
+    <div>
+      <label for="style_tags">Style tags (comma-separated)</label>
+      <input type="text" id="style_tags" name="style_tags" placeholder="denim, streetwear, baggy">
+    </div>
+    <div>
+      <label for="notes">Notes (optional)</label>
+      <input type="text" id="notes" name="notes" placeholder="High-waisted, sits above the hip">
+    </div>
+    <button type="submit">Add to wardrobe</button>
+  </form>
+</div>
+{% endblock %}

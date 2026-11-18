@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Log in — FitFindr{% endblock %}
+{% block content %}
+<h1>Log in</h1>
+<p class="sub">Save your searches, keep a wardrobe, favorite your fit cards.</p>
+
+<div class="card">
+  <h2>Already have an account</h2>
+  <form class="stack" method="post" action="{{ url_for('login') }}">
+    <div>
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" name="email" required autocomplete="email">
+    </div>
+    <div>
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" name="password" required autocomplete="current-password">
+    </div>
+    <button type="submit">Log in</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>New here</h2>
+  <form class="stack" method="post" action="{{ url_for('signup') }}">
+    <div>
+      <label for="signup-email">Email</label>
+      <input type="email" id="signup-email" name="email" required autocomplete="email">
+    </div>
+    <div>
+      <label for="signup-password">Password</label>
+      <input type="password" id="signup-password" name="password" required minlength="6" autocomplete="new-password">
+    </div>
+    <button type="submit" class="secondary">Create account</button>
+  </form>
+</div>
+
+<p class="muted">Searching doesn't require an account — <a href="{{ url_for('home') }}">search anonymously instead</a>.</p>
+{% endblock %}

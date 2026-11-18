@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}FitFindr{% endblock %}
+{% block content %}
+<h1>FitFindr</h1>
+<p class="sub">Describe a secondhand find. It'll search, suggest an outfit, and write a fit card.</p>
+
+{% if not user_id %}
+<div class="flash info">
+  <a href="{{ url_for('login') }}">Log in</a> to save this search, build a
+  wardrobe, and favorite results. You can still search without an account.
+</div>
+{% endif %}
+
+<form class="stack card" method="post" action="{{ url_for('search') }}">
+  <div>
+    <label for="query">What are you looking for?</label>
+    <input type="text" id="query" name="query" placeholder="vintage graphic tee under $30" required>
+  </div>
+  {% if not user_id %}
+  <div class="row" style="justify-content:flex-start; gap:0.4rem;">
+    <input type="checkbox" id="empty-wardrobe" name="empty_wardrobe" value="1" style="width:auto;">
+    <label for="empty-wardrobe" style="font-weight:400;">Use an empty wardrobe (general styling advice only)</label>
+  </div>
+  {% else %}
+  <p class="muted" style="margin:0;">Using your saved wardrobe ({{ wardrobe_count }} item{{ 's' if wardrobe_count != 1 else '' }}) — edit it on the <a href="{{ url_for('profile') }}">Wardrobe</a> page.</p>
+  {% endif %}
+  <button type="submit">Find it</button>
+</form>
+
+<p class="muted">This can take several seconds — it makes a few real model calls.</p>
+{% endblock %}

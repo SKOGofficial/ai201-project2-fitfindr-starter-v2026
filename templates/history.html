@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}History — FitFindr{% endblock %}
+{% block content %}
+<h1>Search history</h1>
+<p class="sub">Every search you've made while logged in.</p>
+
+{% if entries %}
+  {% for e in entries %}
+    <a href="{{ url_for('history_entry', entry_id=e.id) }}" class="card" style="display:block; text-decoration:none; color:inherit;">
+      <div class="row">
+        <strong>&ldquo;{{ e.query }}&rdquo;</strong>
+        <span class="muted">{{ e.created_at }}</span>
+      </div>
+      {% if e.session.error %}
+        <p class="muted" style="margin-top:0.4rem;">No match</p>
+      {% else %}
+        <p class="muted" style="margin-top:0.4rem;">{{ e.session.selected_item.title }} — ${{ e.session.selected_item.price }}</p>
+      {% endif %}
+    </a>
+  {% endfor %}
+{% else %}
+  <p class="empty-state">No searches yet. <a href="{{ url_for('home') }}">Try one</a>.</p>
+{% endif %}
+{% endblock %}
