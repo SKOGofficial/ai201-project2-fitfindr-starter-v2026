@@ -1,0 +1,16 @@
+{
+  "tries": [
+    {
+      "try": 1,
+      "timestamp": "2026-11-18T22:44:30Z",
+      "response_time_seconds": 0.213415,
+      "http_status": 200,
+      "passed": true,
+      "note": "Natural idle gap since last contact (~17.5h, since criterion 7/8 testing ended ~05:25 UTC), not a freshly-waited 20-25min gap. Response was fast (0.21s), consistent with Render's own internal /health polling (~every 5s, observed in logs) keeping the instance warm regardless of external traffic."
+    }
+  ],
+  "target_tries": 5,
+  "idle_minutes_required": 20,
+  "service_url": "https://fitfindr-wyt6.onrender.com",
+  "service_id": "srv-dbuj2duk1f9s73adsst0"
+}
