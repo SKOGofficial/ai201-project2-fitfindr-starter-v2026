@@ -27,15 +27,16 @@ web server has to be. The reason is worth reading before you deploy: see the
 note above `_one_at_a_time` below — it also decides which gunicorn worker you
 can use.
 
-⚠️ There is deliberately NO logging, NO timing and NO request counting in this
-file. That is unit 9's follow-along: you instrument this yourself, first, and
-then deploy it. A structured log you were handed teaches you nothing about
-what belongs in one — and the timing field is the one everybody skips.
+Unit 9's follow-along: logging, timing and request counting, added below —
+one JSON line to stdout per /ask request. See "instrumentation" below for what
+each field means and why.
 """
 
+import json
 import os
 import sys
 import threading
+import time
 
 # config first, and before anything that talks to the model: it loads your .env
 # and fixes the Windows console encoding for every module that imports it.
@@ -43,10 +44,42 @@ import config  # noqa: F401
 
 from flask import Flask, jsonify, request
 
+import generate
 from agent import run_agent
 from utils.data_loader import get_example_wardrobe
 
 app = Flask(__name__)
+
+
+# ── instrumentation ───────────────────────────────────────────────────────────
+# One JSON line per /ask request, to stdout — that's what a host like Render
+# captures as logs, so this is "print", not a logging framework.
+#
+# `generate.call_count()` and `generate.token_counts()` are cumulative for the
+# whole process, not per-request: the CLI only ever serves one query per
+# process, so nobody notices, but this process serves many. So every request
+# snapshots both counters before and after `run_agent()` and logs the
+# difference — the cost of *this* request, not the running total since boot.
+#
+# `_request_count` is a plain count of requests this process has handled since
+# it started. It resets on every restart/redeploy, which is the honest answer
+# to "how many requests has this instance served" — there's no durable store
+# here, and a counter that silently reset without saying so would be worse
+# than one that admits it's per-process.
+
+_request_count = 0
+_count_lock = threading.Lock()
+
+
+def _next_request_id() -> int:
+    global _request_count
+    with _count_lock:
+        _request_count += 1
+        return _request_count
+
+
+def _log(**fields) -> None:
+    print(json.dumps(fields), file=sys.stdout, flush=True)
 
 
 # ── one request at a time ─────────────────────────────────────────────────────
@@ -94,7 +127,7 @@ _one_at_a_time = threading.Lock()
 @app.get("/health")
 def health():
     """Is the server awake? A host pings something like this to find out."""
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok", "requests_served": _request_count})
 
 
 @app.post("/ask")
@@ -107,10 +140,15 @@ def ask():
                                                 example wardrobe the CLI uses.
     Out:  the session dict from run_agent(), as JSON.
     """
+    request_id = _next_request_id()
+    started = time.monotonic()
+
     payload = request.get_json(silent=True) or {}
     query = (payload.get("query") or "").strip()
     if not query:
         # 400 rather than a stack trace: the caller can act on this one.
+        _log(request_id=request_id, route="/ask", status="bad_request",
+             duration_ms=round((time.monotonic() - started) * 1000, 1))
         return jsonify({"error": "Send JSON with a 'query' field, e.g. "
                                  '{"query": "vintage graphic tee under $30"}'}), 400
 
@@ -123,18 +161,23 @@ def ask():
     # indistinguishable from the outside — which is how people conclude the
     # deployment is broken when it is behaving exactly as designed.
     #
-    # This is NOT the logging you add in the follow-along. It prints nothing
-    # on the normal path, carries no timing and counts nothing; it says only
-    # that this request had to wait. `locked()` can be a moment out of date,
-    # so the note is occasionally missed — which costs nothing, because
-    # nothing depends on it.
-    if _one_at_a_time.locked():
+    # `locked()` can be a moment out of date, so `waited` is occasionally
+    # missed — which costs nothing, because nothing below depends on it being
+    # exact; it is informational, not the thing that decides correctness.
+    waited = _one_at_a_time.locked()
+    if waited:
         print(
             "  [serve] another request is still running. This one is waiting "
             "its turn — serve.py handles one at a time, on purpose.",
             file=sys.stderr,
             flush=True,
         )
+
+    # Snapshot the model-usage counters before the run. They're cumulative
+    # for the whole process (see the instrumentation note above the lock), so
+    # the only way to get *this request's* cost is before/after and subtract.
+    calls_before = generate.call_count()
+    tokens_before = generate.token_counts()["total"]
 
     failure = None
     session = None
@@ -144,8 +187,23 @@ def ask():
         except Exception as exc:  # noqa: BLE001 — a 500 with a sentence beats a hang
             failure = f"{type(exc).__name__}: {exc}"
 
+    duration_ms = round((time.monotonic() - started) * 1000, 1)
+    model_calls = generate.call_count() - calls_before
+    tokens = generate.token_counts()["total"] - tokens_before
+
+    if failure is not None:
+        status = "error"
+    elif session.get("error"):
+        status = "no_match"
+    else:
+        status = "ok"
+
     # Outside the lock: building a response is not work the next caller should
-    # be waiting on.
+    # be waiting on. Logging goes out here too, for the same reason.
+    _log(request_id=request_id, route="/ask", status=status,
+         duration_ms=duration_ms, waited_for_lock=waited,
+         model_calls=model_calls, tokens=tokens, query_chars=len(query))
+
     if failure is not None:
         return jsonify({"error": failure}), 500
 
