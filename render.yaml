@@ -11,14 +11,29 @@
 # dashboard) instead of hand-filling the same few fields. GEMINI_API_KEY is
 # `sync: false` on purpose: Render will prompt for it in the dashboard and
 # store it as a secret, so the key is never written to this file or the repo.
-
+#
+# --worker-class gthread --threads 4, not plain `gunicorn serve:app`:
+#
+# Found live (results/unit9_criterion8_before.md) — a single-thread worker
+# means Render's own /health poll (every ~5s) shares the one thread with
+# /ask. Any /ask call that blocks that thread for a while — generate.py's
+# rate-limit pacing sleep is what triggered it, but a slow model call or an
+# MCP subprocess spin-up would do the same — starves /health, and Render
+# force-restarts the instance, killing whatever was in flight.
+#
+# gthread uses real OS threads, not an event loop, so this is safe for the
+# same reason serve.py already rules OUT gevent/eventlet: `asyncio.run()` in
+# mcp_client.call_tool still works per-thread. The Python-level
+# `_one_at_a_time` lock in serve.py still serializes actual agent runs
+# across those threads — this only frees a thread for /health to answer on,
+# it does not let two /ask runs execute at once.
 services:
   - type: web
     name: fitfindr
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn serve:app
+    startCommand: gunicorn --worker-class gthread --threads 4 serve:app
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
