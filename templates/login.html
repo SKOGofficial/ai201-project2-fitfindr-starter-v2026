@@ -1,40 +1,64 @@
 {% extends "base.html" %}
-{% block title %}Log in — FitFindr{% endblock %}
+{% block title %}Welcome to FitFindr{% endblock %}
 {% block content %}
-<div class="page-head">
-  <h1>Log in</h1>
-  <p class="sub">Save your searches, keep a wardrobe, favorite your fit cards.</p>
+<section class="auth-intro">
+  <span class="eyebrow">Your style, saved</span>
+  <h1>Make good finds<br>go further.</h1>
+  <p>Sign in to pick up where you left off, or create an account to build your wardrobe and save favorite looks.</p>
+</section>
+
+<div class="auth-grid">
+  <section class="card pad auth-card">
+    <h2>Welcome back</h2>
+    <p>Log in to see your searches, wardrobe, and saved fits.</p>
+    <form class="stack" method="post" action="{{ url_for('login') }}">
+      <div>
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" name="email" required autocomplete="email">
+      </div>
+      <div>
+        <label for="login-password">Password</label>
+        <div class="password-field">
+          <input type="password" id="login-password" name="password" required autocomplete="current-password">
+          <button type="button" class="password-toggle" data-password-toggle="login-password" aria-controls="login-password" aria-pressed="false">Show</button>
+        </div>
+      </div>
+      <button type="submit">Log in</button>
+    </form>
+  </section>
+
+  <section class="card pad auth-card">
+    <h2>New to FitFindr?</h2>
+    <p>Create an account to keep your style profile with you.</p>
+    <form class="stack" method="post" action="{{ url_for('signup') }}">
+      <div>
+        <label for="signup-email">Email</label>
+        <input type="email" id="signup-email" name="email" required autocomplete="email">
+      </div>
+      <div>
+        <label for="signup-password">Password</label>
+        <div class="password-field">
+          <input type="password" id="signup-password" name="password" required minlength="6" autocomplete="new-password">
+          <button type="button" class="password-toggle" data-password-toggle="signup-password" aria-controls="signup-password" aria-pressed="false">Show</button>
+        </div>
+        <span class="muted">Use at least 6 characters.</span>
+      </div>
+      <button type="submit" class="secondary">Create account</button>
+    </form>
+  </section>
 </div>
 
-<div class="card pad" style="margin-bottom:1.1rem;">
-  <h2>Already have an account</h2>
-  <form class="stack" method="post" action="{{ url_for('login') }}">
-    <div>
-      <label for="login-email">Email</label>
-      <input type="email" id="login-email" name="email" required autocomplete="email">
-    </div>
-    <div>
-      <label for="login-password">Password</label>
-      <input type="password" id="login-password" name="password" required autocomplete="current-password">
-    </div>
-    <button type="submit">Log in</button>
-  </form>
-</div>
+<p class="muted" style="margin-top:1.2rem;">Just browsing? <a href="{{ url_for('home') }}">Search without an account</a>.</p>
 
-<div class="card pad">
-  <h2>New here</h2>
-  <form class="stack" method="post" action="{{ url_for('signup') }}">
-    <div>
-      <label for="signup-email">Email</label>
-      <input type="email" id="signup-email" name="email" required autocomplete="email">
-    </div>
-    <div>
-      <label for="signup-password">Password</label>
-      <input type="password" id="signup-password" name="password" required minlength="6" autocomplete="new-password">
-    </div>
-    <button type="submit" class="secondary">Create account</button>
-  </form>
-</div>
-
-<p class="muted">Searching doesn't require an account — <a href="{{ url_for('home') }}">search anonymously instead</a>.</p>
+<script>
+  document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var input = document.getElementById(button.dataset.passwordToggle);
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      button.textContent = show ? 'Hide' : 'Show';
+      button.setAttribute('aria-pressed', String(show));
+    });
+  });
+</script>
 {% endblock %}

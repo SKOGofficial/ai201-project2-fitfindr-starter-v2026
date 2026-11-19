@@ -1,33 +1,79 @@
 {% extends "base.html" %}
-{% block title %}FitFindr{% endblock %}
+{% from "_macros.html" import category_art %}
+{% block title %}Find your next favorite — FitFindr{% endblock %}
 {% block content %}
-<div class="page-head">
-  <h1>Find your next piece</h1>
-  <p class="sub">Describe a secondhand find. It'll search, suggest an outfit, and write a fit card.</p>
-</div>
+<section class="home-hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Secondhand, styled for you</span>
+    <h1>Good finds.<br><span>Better fits.</span></h1>
+    <p>Search for the piece you want, see how it works with what you own, and keep the looks you love.</p>
+    <div class="hero-points" aria-label="How FitFindr helps">
+      <span>Find a piece</span>
+      <span>Style your wardrobe</span>
+      <span>Save your look</span>
+    </div>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="inspiration-card">
+      {{ category_art('tops') }}
+      <div class="inspiration-meta">
+        <div><strong>A little more you</strong><span>Thoughtful finds, easy outfits</span></div>
+        <span class="inspiration-price">01 / 03</span>
+      </div>
+    </div>
+  </div>
+</section>
 
 {% if not user_id %}
-<div class="flash info">
-  <a href="{{ url_for('login') }}" style="font-weight:700;">Log in</a> to save this search, build a
-  wardrobe, and favorite results. You can still search without an account.
+<div class="account-note">
+  <p>Want your searches, wardrobe, and favorites to follow you? <a href="{{ url_for('login') }}">Create an account or log in</a>.</p>
+  <span class="tag">Free to browse</span>
 </div>
 {% endif %}
 
-<form class="stack card pad" method="post" action="{{ url_for('search') }}">
-  <div>
-    <label for="query">What are you looking for?</label>
-    <input type="text" id="query" name="query" placeholder="vintage graphic tee under $30" required>
+<section class="card home-search" aria-labelledby="search-title">
+  <div class="search-heading">
+    <div>
+      <span class="step-label">Start with a search</span>
+      <h2 id="search-title">What are you looking for?</h2>
+      <p>Try a style, item, size, or budget — like “vintage graphic tee under $30”.</p>
+    </div>
+    {% if user_id %}
+      <span class="tag">Your personal stylist</span>
+    {% endif %}
   </div>
-  {% if not user_id %}
-  <div class="row" style="justify-content:flex-start; gap:0.5rem;">
-    <input type="checkbox" id="empty-wardrobe" name="empty_wardrobe" value="1" style="width:auto;">
-    <label for="empty-wardrobe" style="font-weight:400;">Use an empty wardrobe (general styling advice only)</label>
-  </div>
-  {% else %}
-  <p class="muted" style="margin:0;">Using your saved wardrobe ({{ wardrobe_count }} item{{ 's' if wardrobe_count != 1 else '' }}) — edit it on the <a href="{{ url_for('profile') }}">Wardrobe</a> page.</p>
-  {% endif %}
-  <button type="submit">Find it →</button>
-</form>
+  <form class="stack" id="search-form" method="post" action="{{ url_for('search') }}">
+    <div class="search-field">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <circle cx="10.8" cy="10.8" r="6.8"></circle>
+        <path d="m16 16 4.5 4.5"></path>
+      </svg>
+      <input type="text" id="query" name="query" placeholder="vintage graphic tee under $30" autocomplete="off" required aria-label="Describe the clothing item you want">
+    </div>
+    {% if not user_id %}
+      <label class="checkbox-label" for="empty-wardrobe">
+        <input type="checkbox" id="empty-wardrobe" name="empty_wardrobe" value="1">
+        <span>Use an empty wardrobe for general styling advice</span>
+      </label>
+    {% else %}
+      <p class="wardrobe-hint">Using your saved wardrobe ({{ wardrobe_count }} item{{ 's' if wardrobe_count != 1 else '' }}). <a href="{{ url_for('profile') }}">Edit wardrobe</a></p>
+    {% endif %}
+    <button class="search-submit" type="submit" id="search-submit">Find my fit <span aria-hidden="true">→</span></button>
+  </form>
+  <p class="search-footnote" id="search-status" aria-live="polite">A search takes a few seconds while FitFindr finds a piece and puts a look together.</p>
+</section>
 
-<p class="muted" style="margin-top:1rem;">This can take several seconds — it makes a few real model calls.</p>
+<script>
+  (function () {
+    var form = document.getElementById('search-form');
+    var button = document.getElementById('search-submit');
+    var status = document.getElementById('search-status');
+    if (!form || !button || !status) return;
+    form.addEventListener('submit', function () {
+      button.disabled = true;
+      button.textContent = 'Finding your fit…';
+      status.textContent = 'Searching listings and styling your look. This usually takes several seconds.';
+    });
+  })();
+</script>
 {% endblock %}

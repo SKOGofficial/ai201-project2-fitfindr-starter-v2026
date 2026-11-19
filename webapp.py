@@ -147,10 +147,15 @@ def _log_timing(query: str, total: float, step_timings: list) -> None:
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html", active_page="login", narrow_page=True)
+        if auth.current_user_id():
+            return redirect(url_for("home"))
+        return render_template("login.html", active_page="login", narrow_page=False)
 
     email = (request.form.get("email") or "").strip()
     password = request.form.get("password") or ""
+    if not email or not password:
+        flash("Enter your email and password.", "error")
+        return redirect(url_for("login"))
     try:
         user_id = db.sign_in(email, password)
     except Exception as exc:  # noqa: BLE001 — surface as a flash, not a 500
@@ -166,6 +171,12 @@ def login():
 def signup():
     email = (request.form.get("email") or "").strip()
     password = request.form.get("password") or ""
+    if not email or not password:
+        flash("Enter your email and a password to create an account.", "error")
+        return redirect(url_for("login"))
+    if len(password) < 6:
+        flash("Your password must be at least 6 characters.", "error")
+        return redirect(url_for("login"))
     try:
         result = db.sign_up(email, password)
     except Exception as exc:  # noqa: BLE001
@@ -200,7 +211,7 @@ def home():
     wardrobe_count = None
     if auth.current_user_id():
         wardrobe_count = len(db.list_wardrobe_items(auth.current_user_id()))
-    return render_template("home.html", active_page="home", wardrobe_count=wardrobe_count, narrow_page=True)
+    return render_template("home.html", active_page="home", wardrobe_count=wardrobe_count, narrow_page=False)
 
 
 @app.post("/search")
